@@ -78,7 +78,7 @@ export interface DiscussionMessage {
 
 export interface DiscussionRound {
   index: number
-  phase: 'familiarize' | 'align' | 'propose' | 'critique' | 'refine' | 'converge'
+  phase: 'familiarize' | 'align' | 'lead' | 'critique' | 'revise' | 'converge'
   messages: DiscussionMessage[]
 }
 

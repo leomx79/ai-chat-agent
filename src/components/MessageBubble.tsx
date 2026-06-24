@@ -2,14 +2,14 @@
 import { cn } from '@/lib/utils'
 import MarkdownRenderer from './MarkdownRenderer'
 import type { DiscussionMessage, MessageType } from '../../shared/types'
-import { BookOpen, GitCompare, Lightbulb, AlertCircle, RefreshCw, Sparkles, User, type LucideIcon } from 'lucide-react'
+import { BookOpen, GitCompare, Compass, AlertCircle, RefreshCw, Sparkles, User, type LucideIcon } from 'lucide-react'
 
 const typeConfig: Record<MessageType, { label: string; icon: LucideIcon; color: string }> = {
   familiarize: { label: '项目理解', icon: BookOpen, color: 'text-cyan-400 bg-cyan-500/10' },
   align: { label: '认知对齐', icon: GitCompare, color: 'text-teal-400 bg-teal-500/10' },
-  idea: { label: '提案', icon: Lightbulb, color: 'text-amber-400 bg-amber-500/10' },
+  lead: { label: '主线推进', icon: Compass, color: 'text-amber-400 bg-amber-500/10' },
   critique: { label: '质疑', icon: AlertCircle, color: 'text-red-400 bg-red-500/10' },
-  refine: { label: '完善', icon: RefreshCw, color: 'text-blue-400 bg-blue-500/10' },
+  revise: { label: '修正', icon: RefreshCw, color: 'text-blue-400 bg-blue-500/10' },
   summary: { label: '总结', icon: Sparkles, color: 'text-accent-light bg-accent/10' },
   system: { label: '系统', icon: Sparkles, color: 'text-zinc-400 bg-white/5' },
   user: { label: '用户', icon: User, color: 'text-emerald-400 bg-emerald-500/10' },
@@ -29,7 +29,7 @@ export default function MessageBubble({
   streamingText?: string
 }) {
   const content = streaming ? streamingText : message?.content || ''
-  const type = message?.type || 'idea'
+  const type = message?.type || 'lead'
   const config = typeConfig[type]
   const Icon = config.icon
   const name = streaming ? '生成中...' : message?.participantName || 'AI'

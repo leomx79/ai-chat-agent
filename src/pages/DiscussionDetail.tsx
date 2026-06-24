@@ -254,7 +254,7 @@ export default function DiscussionDetail() {
                   participantName: discussionParticipants.find((p) => p?.id === streamingParticipantId)?.name || 'AI',
                   role: 'assistant',
                   content: streamingText,
-                  type: 'idea',
+                  type: 'lead',
                   timestamp: Date.now(),
                 }}
               />

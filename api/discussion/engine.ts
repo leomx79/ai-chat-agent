@@ -53,9 +53,9 @@ function roundPhaseLabel(phase: string, round: number): string {
   switch (phase) {
     case 'familiarize': return '项目熟悉阶段'
     case 'align': return '认知对齐阶段'
-    case 'propose': return `提案阶段(第${round}轮)`
-    case 'critique': return `互评阶段(第${round}轮)`
-    case 'refine': return `完善阶段(第${round}轮)`
+    case 'lead': return `主线推进(第${round}轮)`
+    case 'critique': return `质疑阶段(第${round}轮)`
+    case 'revise': return `修正阶段(第${round}轮)`
     case 'converge': return '收敛阶段'
     default: return `第${round}轮`
   }
@@ -269,7 +269,7 @@ export async function runDiscussion(discussionId: string): Promise<void> {
     if (isStopped(discussionId)) return
 
     const roundIdx = 2 + discussIdx
-    const phase = discussIdx === 0 ? 'propose' : discussIdx === maxRounds - 1 ? 'converge' : 'critique'
+    const phase = discussIdx === 0 ? 'lead' : discussIdx === maxRounds - 1 ? 'converge' : 'critique'
 
     if (!rounds[roundIdx]) {
       rounds[roundIdx] = { index: roundIdx, phase, messages: [] }
@@ -295,7 +295,7 @@ export async function runDiscussion(discussionId: string): Promise<void> {
           ? proposePrompt(ctx, understandingMessages)
           : critiquePrompt(ctx, discussIdx, previousMessages, understandingMessages)
 
-      const msgType: MessageType = discussIdx === 0 ? 'idea' : 'refine'
+      const msgType: MessageType = discussIdx === 0 ? 'lead' : 'revise'
       await aiSpeak(discussionId, provider, participant, roundIdx, msgType, prompt.system, prompt.user, rounds)
     }
 

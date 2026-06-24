@@ -586,7 +586,7 @@ export class MessageHandler {
     }
     const d = this.store.getDiscussion(discussionId)
     if (d) {
-      if (!d.rounds[round]) d.rounds[round] = { index: round, phase: type === 'familiarize' ? 'familiarize' : type === 'align' ? 'align' : type === 'lead' ? 'lead' : type === 'critique' ? 'critique' : type === 'revise' ? 'revise' : 'propose', messages: [] }
+      if (!d.rounds[round]) d.rounds[round] = { index: round, phase: type === 'familiarize' ? 'familiarize' : type === 'align' ? 'align' : type === 'lead' ? 'lead' : type === 'critique' ? 'critique' : type === 'revise' ? 'revise' : 'converge', messages: [] }
       d.rounds[round].messages.push(msg)
       d.currentRound = round + 1
       this.store.saveDiscussion(d)
@@ -656,11 +656,11 @@ export class MessageHandler {
       const user = `## 对话历史\n${chatHistory}\n\n请回复:`
 
       try {
-        const result = await this.runAgentLoop(discussionId, provider, p, chatRound, 'idea', system, user)
-        this.saveAndBroadcastMessage(discussionId, chatRound, p, result, 'idea')
+        const result = await this.runAgentLoop(discussionId, provider, p, chatRound, 'lead', system, user)
+        this.saveAndBroadcastMessage(discussionId, chatRound, p, result, 'lead')
       } catch (err) {
         const errMsg = `回复失败: ${err instanceof Error ? err.message : String(err)}`
-        this.saveAndBroadcastMessage(discussionId, chatRound, p, errMsg, 'idea')
+        this.saveAndBroadcastMessage(discussionId, chatRound, p, errMsg, 'lead')
       }
     }))
     this.send({ type: 'discussion:round-end', data: { id: discussionId, round: chatRound } })

@@ -81,7 +81,7 @@ export async function handleChatMessage(discussionId: string, userMessage: strin
   // 当前轮次(每轮 = 1条用户消息 + N条AI回复)
   const chatRound = discussion.rounds.length
   if (!discussion.rounds[chatRound]) {
-    discussion.rounds[chatRound] = { index: chatRound, phase: 'propose', messages: [] }
+    discussion.rounds[chatRound] = { index: chatRound, phase: 'lead', messages: [] }
   }
 
   // 保存用户消息
@@ -114,7 +114,7 @@ export async function handleChatMessage(discussionId: string, userMessage: strin
       participantId: participant.id,
       participantName: participant.name,
       round: chatRound,
-      type: 'idea',
+      type: 'lead',
     })
 
     const system = `${participant.systemPrompt}
@@ -161,9 +161,9 @@ ${chatHistory}
       fullText = `[调用失败: ${err instanceof Error ? err.message : String(err)}]`
     }
 
-    const aiMsg = makeMessage(chatRound, participant.id, participant.name, 'assistant', fullText, 'idea')
+    const aiMsg = makeMessage(chatRound, participant.id, participant.name, 'assistant', fullText, 'lead')
     const d = discussionStore.get(discussionId)!
-    if (!d.rounds[chatRound]) d.rounds[chatRound] = { index: chatRound, phase: 'propose', messages: [] }
+    if (!d.rounds[chatRound]) d.rounds[chatRound] = { index: chatRound, phase: 'lead', messages: [] }
     d.rounds[chatRound].messages.push(aiMsg)
 
     discussionStore.update(discussionId, {
