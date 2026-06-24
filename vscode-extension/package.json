@@ -1,0 +1,87 @@
+{
+  "name": "ai-roundtable",
+  "displayName": "AI 圆桌讨论",
+  "publisher": "ai-roundtable",
+  "description": "多个 AI 围绕你的项目进行圆桌讨论,自主浏览项目文件,讨论后生成修改方案",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ai-roundtable",
+          "title": "AI 圆桌讨论",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "ai-roundtable": [
+        {
+          "id": "aiRoundtableView",
+          "name": "圆桌讨论",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "ai-roundtable.openPanel",
+        "title": "AI 圆桌讨论: 打开面板"
+      },
+      {
+        "command": "ai-roundtable.newDiscussion",
+        "title": "AI 圆桌讨论: 发起新讨论"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "ai-roundtable.newDiscussion",
+          "when": "view == aiRoundtableView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AI 圆桌讨论",
+      "properties": {
+        "ai-roundtable.maxRounds": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "圆桌会议模式的最大讨论轮数"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs --watch",
+    "package": "node esbuild.mjs --production",
+    "vscode:prepublish": "npm run package",
+    "compile-webview": "cd webview-ui && npm run build",
+    "build": "npm run package && npm run compile-webview",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "diff": "^7.0.0",
+    "nanoid": "^5.0.9"
+  }
+}

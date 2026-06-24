@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+*/dist/
+media/index.js
+media/index.css
+media/index.html
+
+# VSIX packages
+*.vsix
+
+# Environment
+.env
+.env.local
+*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Trae/VSCode extension dev
+.vscode-test/
+*.vscodeignore
+
+# Local database (contains API keys)
+.data/
+
+# Trae internal
+.trae/
+
+# Lock files (keep package-lock.json for reproducible builds)
+# Don't ignore package-lock.json
