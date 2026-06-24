@@ -1,15 +1,18 @@
-// 讨论详情视图 - Copilot Chat 风格
-import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { ArrowLeft, Send, Sparkles, Square, Check, X, FileCode, Wrench, FolderTree, Search, Terminal, Loader, ChevronDown, ChevronRight, AlertTriangle, ArrowDown, Copy, ShieldAlert } from 'lucide-react'
+// 讨论详情视图 - Cline 风格优化
+import React, { useEffect, useRef, useState, useCallback, memo } from 'react'
+import { ArrowLeft, Send, Sparkles, Square, Check, X, FileCode, Wrench, FolderTree, Search, Terminal, Loader, ChevronDown, ChevronRight, AlertTriangle, ArrowDown, Copy, ShieldAlert, Users, MessageSquare, GitCompare, BookOpen, Compass, Code2 as Code } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useStore, type StreamItem } from '../store'
 
+// ============ 工具配置 ============
 const toolIcons: Record<string, any> = {
   list_files: FolderTree,
   read_file: FileCode,
   search_files: Search,
+  list_code_definition_names: Code,
   write_file: Wrench,
+  replace_in_file: Wrench,
   execute_command: Terminal,
 }
 
@@ -17,7 +20,9 @@ const toolColors: Record<string, string> = {
   list_files: '#60a5fa',
   read_file: '#34d399',
   search_files: '#fbbf24',
+  list_code_definition_names: '#c084fc',
   write_file: '#f87171',
+  replace_in_file: '#fb923c',
   execute_command: '#a78bfa',
 }
 
@@ -25,10 +30,16 @@ const toolLabels: Record<string, string> = {
   list_files: '浏览目录',
   read_file: '读取文件',
   search_files: '搜索',
+  list_code_definition_names: '代码结构',
   write_file: '写入文件',
+  replace_in_file: '差异编辑',
   execute_command: '执行命令',
 }
 
+// 低风险工具 (Cline: groupLowStakesTools)
+const LOW_STAKE_TOOLS = ['list_files', 'read_file', 'search_files', 'list_code_definition_names']
+
+// ============ 消息类型配置 ============
 const typeLabels: Record<string, { text: string; color: string }> = {
   familiarize: { text: '项目理解', color: '#22d3ee' },
   align: { text: '认知对齐', color: '#2dd4bf' },
@@ -40,6 +51,16 @@ const typeLabels: Record<string, { text: string; color: string }> = {
   system: { text: '系统', color: '#9ca3af' },
 }
 
+// ============ 圆桌阶段配置 ============
+const PHASES = [
+  { key: 'familiarize', label: '熟悉', icon: BookOpen },
+  { key: 'align', label: '对齐', icon: GitCompare },
+  { key: 'discuss', label: '讨论', icon: MessageSquare },
+  { key: 'converge', label: '共识', icon: Users },
+  { key: 'propose', label: '方案', icon: Sparkles },
+]
+
+// ============ 主组件 ============
 export function DiscussionDetail() {
   const {
     currentDiscussion, streamItems, streamingParticipantIds, liveStatus,
@@ -59,7 +80,7 @@ export function DiscussionDetail() {
   const isActive = status === 'discussing' || status === 'consensus' || status === 'proposing'
   const proposal = d?.proposal
 
-  // 智能滚动
+  // 智能滚动 (Cline: useScrollBehavior)
   const checkScroll = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
@@ -102,41 +123,69 @@ export function DiscussionDetail() {
     setAtBottom(true)
   }
 
+  // 分组工具调用 (Cline: groupLowStakesTools)
+  const groupedItems = groupLowStakeTools(streamItems)
+
+  // 当前阶段
+  const currentPhase = (d as any).currentPhase || (status === 'propose' || status === 'reviewing' ? 'propose' : status === 'consensus' ? 'converge' : 'discuss')
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', position: 'relative' }}>
-      {/* 头部 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+      {/* 讨论头部 (Cline TaskHeader 风格) */}
+      <div className="discussion-header">
         <button className="btn-icon" onClick={() => setView('discussions')}>
           <ArrowLeft size={15} />
         </button>
         <div style={{ flex: 1, overflow: 'hidden' }}>
           <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.topic}</div>
-          <div style={{ fontSize: 11, color: 'var(--fg-muted)' }}>
-            {discussionParticipants.length} AI · {isChatMode ? '自由对话' : `${d.maxRounds}轮圆桌`}
+          <div style={{ fontSize: 10, color: 'var(--fg-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 1 }}>
+            <Users size={10} />
+            {discussionParticipants.length} AI
+            <span style={{ opacity: 0.4 }}>·</span>
+            {isChatMode ? '自由对话' : `${d.maxRounds}轮圆桌`}
+            {isStreaming && (
+              <span style={{ color: 'var(--brand)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--brand)', animation: 'iconPulse 1.5s infinite' }} />
+                生成中
+              </span>
+            )}
           </div>
         </div>
         {isChatMode && status === 'discussing' && streamItems.length > 0 && !isStreaming && (
-          <button className="btn" onClick={() => generateProposal(d.id)} style={{ padding: '4px 10px' }}>
-            <Sparkles size={13} /> 生成方案
+          <button className="btn" onClick={() => generateProposal(d.id)} style={{ padding: '4px 10px', fontSize: 11 }}>
+            <Sparkles size={12} /> 生成方案
           </button>
         )}
       </div>
 
+      {/* 圆桌阶段进度条 */}
+      {!isChatMode && (
+        <div className="phase-bar">
+          {PHASES.map((phase, i) => {
+            const isActive = currentPhase === phase.key
+            const phaseOrder = PHASES.findIndex(p => p.key === currentPhase)
+            const isDone = phaseOrder > i
+            const Icon = phase.icon
+            return (
+              <React.Fragment key={phase.key}>
+                <div className={`phase-item ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}>
+                  <Icon size={11} className={isActive ? 'icon-pulse' : ''} />
+                  {phase.label}
+                </div>
+                {i < PHASES.length - 1 && <span className="phase-arrow">→</span>}
+              </React.Fragment>
+            )
+          })}
+        </div>
+      )}
+
       {/* 消息流 */}
-      <div ref={scrollRef} onScroll={checkScroll} style={{ flex: 1, overflow: 'auto', padding: '12px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div ref={scrollRef} onScroll={checkScroll} style={{ flex: 1, overflow: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {streamItems.length === 0 && !isStreaming && (
-          <div className="empty">
-            {isChatMode ? <Send size={28} /> : <Sparkles size={28} />}
-            <p style={{ marginTop: 10, fontSize: 13 }}>
-              {isChatMode ? '发送消息开始对话' : 'AI 正在自主浏览项目...'}
-            </p>
-            <p style={{ fontSize: 11, marginTop: 4 }}>
-              {isChatMode ? 'AI 会用工具浏览项目文件后回复' : '多个 AI 将自主讨论'}
-            </p>
-          </div>
+          <WelcomeView isChatMode={isChatMode} participants={discussionParticipants} onSuggestion={(text) => { setChatInput(text); textareaRef.current?.focus() }} />
         )}
-        {streamItems.map((item) => (
-          <StreamItemView key={item.id} item={item} participants={discussionParticipants} isStreaming={isStreaming} streamingIds={streamingParticipantIds} error={error} />
+        {groupedItems.map((item) => (
+          <GroupedItemView key={item.id} item={item} participants={discussionParticipants} isStreaming={isStreaming} streamingIds={streamingParticipantIds} error={error} />
         ))}
       </div>
 
@@ -156,10 +205,7 @@ export function DiscussionDetail() {
 
       {/* 内联工具审批 */}
       {pendingConfirm && (
-        <div style={{
-          padding: '8px 12px', borderTop: '1px solid var(--border)', flexShrink: 0,
-          background: 'rgba(210, 153, 34, 0.08)',
-        }}>
+        <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border)', flexShrink: 0, background: 'rgba(210, 153, 34, 0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <ShieldAlert size={14} style={{ color: 'var(--warning)' }} />
             <span style={{ fontSize: 12, fontWeight: 600 }}>
@@ -167,7 +213,7 @@ export function DiscussionDetail() {
             </span>
           </div>
           <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginBottom: 6, fontFamily: 'Consolas, monospace' }}>
-            {pendingConfirm.name === 'write_file' ? pendingConfirm.args.path : pendingConfirm.args.command}
+            {pendingConfirm.name === 'write_file' || pendingConfirm.name === 'replace_in_file' ? pendingConfirm.args.path : pendingConfirm.args.command}
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button className="btn" onClick={() => approveTool(pendingConfirm.confirmId)} style={{ background: 'var(--success)', padding: '3px 12px' }}>
@@ -194,7 +240,7 @@ export function DiscussionDetail() {
                   handleSend()
                 }
               }}
-              placeholder={isStreaming ? 'AI 正在回复...' : '输入消息,Enter 发送,Shift+Enter 换行'}
+              placeholder={isStreaming ? 'AI 正在回复...' : '输入消息,Enter 发送'}
               disabled={isStreaming}
               rows={1}
               style={{
@@ -206,7 +252,7 @@ export function DiscussionDetail() {
             />
             <div className="chat-input-toolbar">
               <span style={{ fontSize: 10, color: 'var(--fg-muted)', flex: 1 }}>
-                {isStreaming ? '生成中...' : '就绪'}
+                {isStreaming ? <span className="shimmer-text">生成中</span> : '就绪'}
               </span>
               {isStreaming ? (
                 <button className="btn-icon" onClick={() => stopDiscussion(d.id)} style={{ color: 'var(--error)' }}>
@@ -234,15 +280,84 @@ export function DiscussionDetail() {
   )
 }
 
-// ============ 消息流条目 ============
-function StreamItemView({ item, participants, isStreaming, streamingIds, error }: { item: StreamItem; participants: any[]; isStreaming: boolean; streamingIds: string[]; error: string | null }) {
+// ============ 工具分组逻辑 (Cline: groupLowStakesTools) ============
+function groupLowStakeTools(items: StreamItem[]): any[] {
+  const result: any[] = []
+  let toolGroup: StreamItem[] = []
+
+  for (const item of items) {
+    if (item.kind === 'tool' && LOW_STAKE_TOOLS.includes(item.toolName!)) {
+      toolGroup.push(item)
+    } else {
+      if (toolGroup.length > 0) {
+        if (toolGroup.length === 1) {
+          result.push(toolGroup[0])
+        } else {
+          result.push({ id: `group_${toolGroup[0].id}`, kind: 'tool-group', tools: toolGroup })
+        }
+        toolGroup = []
+      }
+      result.push(item)
+    }
+  }
+  if (toolGroup.length > 0) {
+    if (toolGroup.length === 1) {
+      result.push(toolGroup[0])
+    } else {
+      result.push({ id: `group_${toolGroup[0].id}`, kind: 'tool-group', tools: toolGroup })
+    }
+  }
+  return result
+}
+
+// ============ 欢迎页 (Cline WelcomeSection 风格) ============
+function WelcomeView({ isChatMode, participants, onSuggestion }: { isChatMode: boolean; participants: any[]; onSuggestion: (text: string) => void }) {
+  const suggestions = isChatMode
+    ? [
+        { icon: '📊', text: '分析当前项目的架构和代码质量' },
+        { icon: '🐛', text: '检查最近修改的代码有什么问题' },
+        { icon: '🚀', text: '优化性能瓶颈,给出改进方案' },
+      ]
+    : [
+        { icon: '🔍', text: '让 AI 自主浏览项目并提出改进建议' },
+        { icon: '🏗️', text: '讨论架构设计,多角度分析优劣' },
+        { icon: '⚡', text: '评审代码实现,发现潜在风险' },
+      ]
+
+  return (
+    <div className="welcome-section fade-in">
+      <div className="welcome-icon">
+        <Sparkles size={24} color="white" />
+      </div>
+      <div className="welcome-title">{isChatMode ? '开始对话' : 'AI 圆桌讨论'}</div>
+      <div className="welcome-desc">
+        {isChatMode
+          ? `${participants.length} 个 AI 参与方已就绪,发送消息即可开始对话。AI 会自主使用工具浏览项目文件。`
+          : `${participants.length} 个 AI 将从各自专业角度深入理解项目,通过主线推进+交叉质疑达成共识。`
+        }
+      </div>
+      <div className="welcome-suggestions">
+        {suggestions.map((s, i) => (
+          <button key={i} className="welcome-suggestion" onClick={() => onSuggestion(s.text)}>
+            <span style={{ fontSize: 14 }}>{s.icon}</span>
+            {s.text}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ============ 分组条目渲染 ============
+function GroupedItemView({ item, participants, isStreaming, streamingIds, error }: { item: any; participants: any[]; isStreaming: boolean; streamingIds: string[]; error: string | null }) {
+  if (item.kind === 'tool-group') return <ToolGroupCard tools={item.tools} />
   if (item.kind === 'tool') return <ToolCard item={item} />
   if (item.kind === 'error') return <ErrorCard error={error} />
   return <MessageCard item={item} participants={participants} isStreaming={isStreaming} streamingIds={streamingIds} />
 }
 
-// ============ 文本消息 ============
-function MessageCard({ item, participants, isStreaming, streamingIds }: { item: StreamItem; participants: any[]; isStreaming: boolean; streamingIds: string[] }) {
+// ============ 文本消息 (memo 化, Cline ChatRow 风格) ============
+const MessageCard = memo(function MessageCard({ item, participants, isStreaming, streamingIds }: { item: StreamItem; participants: any[]; isStreaming: boolean; streamingIds: string[] }) {
   const msg = item.msg!
   const isUser = msg.participantId === 'user'
   const participant = participants.find((p) => p.id === msg.participantId)
@@ -258,22 +373,14 @@ function MessageCard({ item, participants, isStreaming, streamingIds }: { item: 
   }
 
   return (
-    <div
-      className={`msg-block slide-up ${isUser ? 'msg-user' : 'msg-ai'}`}
-      style={{ position: 'relative' }}
-    >
+    <div className={`msg-block fade-in ${isUser ? 'msg-user' : 'msg-ai'}`} style={{ position: 'relative' }}>
       {/* 悬停复制按钮 */}
       {!isStreamingThis && msg.content && (
         <button
-          className="btn-icon"
+          className="btn-icon msg-copy-btn"
           onClick={handleCopy}
           title="复制"
-          style={{
-            position: 'absolute', top: 6, right: 6, width: 22, height: 22,
-            opacity: 0, transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
+          style={{ position: 'absolute', top: 6, right: 6, width: 22, height: 22, opacity: 0, transition: 'opacity 0.15s' }}
         >
           {copied ? <Check size={11} style={{ color: 'var(--success)' }} /> : <Copy size={11} />}
         </button>
@@ -305,12 +412,7 @@ function MessageCard({ item, participants, isStreaming, streamingIds }: { item: 
                 <pre>
                   <div className="code-header">
                     <span>{lang}</span>
-                    <button
-                      className="btn-icon"
-                      style={{ width: 20, height: 20 }}
-                      onClick={() => navigator.clipboard.writeText(String(children))}
-                      title="复制"
-                    >
+                    <button className="btn-icon" style={{ width: 20, height: 20 }} onClick={() => navigator.clipboard.writeText(String(children))} title="复制">
                       <Copy size={11} />
                     </button>
                   </div>
@@ -322,16 +424,87 @@ function MessageCard({ item, participants, isStreaming, streamingIds }: { item: 
         >
           {msg.content || ''}
         </ReactMarkdown>
-        {isStreamingThis && (
-          <span style={{ display: 'inline-block', width: 7, height: 14, background: 'var(--accent)', borderRadius: 1, animation: 'blink 1s infinite', marginLeft: 2, verticalAlign: 'text-bottom' }} />
-        )}
+        {isStreamingThis && <span className="stream-cursor" />}
       </div>
+    </div>
+  )
+})
+
+// ============ 工具分组卡片 (Cline ToolGroupRenderer) ============
+const ToolGroupCard = memo(function ToolGroupCard({ tools }: { tools: StreamItem[] }) {
+  const [expanded, setExpanded] = useState(false)
+  const [activeTool, setActiveTool] = useState<string | null>(null)
+
+  // 统计
+  const counts = tools.reduce((acc, t) => {
+    const label = toolLabels[t.toolName!] || t.toolName!
+    acc[label] = (acc[label] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const summary = Object.entries(counts).map(([label, count]) => `${count} ${label}`).join(', ')
+
+  // 检查是否有 pending 工具
+  const hasPending = tools.some(t => t.toolStatus === 'pending')
+
+  return (
+    <div className="tool-group fade-in" style={{ marginLeft: 27 }}>
+      <div className="tool-group-header" onClick={() => setExpanded(!expanded)}>
+        {hasPending ? (
+          <Loader size={12} className="spin" style={{ color: 'var(--info)' }} />
+        ) : (
+          <Check size={12} style={{ color: 'var(--success)' }} />
+        )}
+        <span>AI {summary}</span>
+        <div style={{ flex: 1 }} />
+        {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+      </div>
+      {expanded && tools.map((tool) => (
+        <ToolGroupItem key={tool.id} tool={tool} />
+      ))}
+    </div>
+  )
+})
+
+function ToolGroupItem({ tool }: { tool: StreamItem }) {
+  const [expanded, setExpanded] = useState(false)
+  const Icon = toolIcons[tool.toolName!] || Wrench
+  const color = toolColors[tool.toolName!] || '#9ca3af'
+
+  const argSummary = (() => {
+    const a = tool.toolArgs || {}
+    if (a.path) return a.path
+    if (a.command) return a.command.length > 40 ? a.command.slice(0, 40) + '...' : a.command
+    if (a.pattern) return a.pattern
+    return ''
+  })()
+
+  return (
+    <div className="tool-group-item" onClick={() => tool.toolResult && setExpanded(!expanded)}>
+      <Icon size={11} style={{ color }} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Consolas, monospace', fontSize: 10 }}>
+        {argSummary}
+      </span>
+      <div style={{ flex: 1 }} />
+      {tool.toolStatus === 'pending' ? (
+        <Loader size={10} className="spin" style={{ color: 'var(--info)' }} />
+      ) : tool.toolStatus === 'error' ? (
+        <X size={10} style={{ color: 'var(--error)' }} />
+      ) : (
+        <Check size={10} style={{ color: 'var(--success)' }} />
+      )}
+      {tool.toolResult && (expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />)}
+      {expanded && tool.toolResult && (
+        <pre className="tool-result" style={{ position: 'absolute', left: 0, right: 0, marginTop: 4, borderRadius: 4 }}>
+          {tool.toolResult}
+        </pre>
+      )}
     </div>
   )
 }
 
-// ============ 工具调用卡片 ============
-function ToolCard({ item }: { item: StreamItem }) {
+// ============ 单个工具卡片 ============
+const ToolCard = memo(function ToolCard({ item }: { item: StreamItem }) {
   const [expanded, setExpanded] = useState(false)
   const Icon = toolIcons[item.toolName!] || Wrench
   const color = toolColors[item.toolName!] || '#9ca3af'
@@ -347,12 +520,8 @@ function ToolCard({ item }: { item: StreamItem }) {
   })()
 
   return (
-    <div className="tool-card slide-up" style={{ marginLeft: 27 }}>
-      <div
-        className="tool-header"
-        onClick={() => !isPending && setExpanded(!expanded)}
-        style={{ cursor: isPending ? 'default' : 'pointer' }}
-      >
+    <div className="tool-card fade-in" style={{ marginLeft: 27 }}>
+      <div className="tool-header" onClick={() => !isPending && setExpanded(!expanded)} style={{ cursor: isPending ? 'default' : 'pointer' }}>
         <Icon size={13} style={{ color }} />
         <span style={{ fontWeight: 500 }}>{label}</span>
         {argSummary && (
@@ -377,19 +546,19 @@ function ToolCard({ item }: { item: StreamItem }) {
       )}
     </div>
   )
-}
+})
 
 // ============ 错误卡片 ============
-function ErrorCard({ error }: { error: string | null }) {
+const ErrorCard = memo(function ErrorCard({ error }: { error: string | null }) {
   return (
-    <div className="error-card">
+    <div className="error-card fade-in">
       <AlertTriangle size={14} style={{ color: 'var(--error)', flexShrink: 0, marginTop: 1 }} />
       <div style={{ fontSize: 12, color: '#fca5a5', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {error || '发生错误'}
       </div>
     </div>
   )
-}
+})
 
 // ============ 方案审查 ============
 function ProposalReview({ proposal, onApprove, onReject, status }: { proposal: any; onApprove: () => void; onReject: () => void; status: string }) {
