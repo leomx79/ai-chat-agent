@@ -632,7 +632,7 @@ export class MessageHandler {
 
     const chatRound = discussion.rounds.length
     if (!discussion.rounds[chatRound]) {
-      discussion.rounds[chatRound] = { index: chatRound, phase: 'propose', messages: [] }
+      discussion.rounds[chatRound] = { index: chatRound, phase: 'lead', messages: [] }
     }
 
     // 保存用户消息
