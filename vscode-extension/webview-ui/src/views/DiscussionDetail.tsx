@@ -32,9 +32,9 @@ const toolLabels: Record<string, string> = {
 const typeLabels: Record<string, { text: string; color: string }> = {
   familiarize: { text: '项目理解', color: '#22d3ee' },
   align: { text: '认知对齐', color: '#2dd4bf' },
-  idea: { text: '发言', color: '#fbbf24' },
+  lead: { text: '主线推进', color: '#f59e0b' },
   critique: { text: '质疑', color: '#f87171' },
-  refine: { text: '完善', color: '#60a5fa' },
+  revise: { text: '修正', color: '#60a5fa' },
   summary: { text: '总结', color: '#a78bfa' },
   user: { text: '用户', color: '#34d399' },
   system: { text: '系统', color: '#9ca3af' },

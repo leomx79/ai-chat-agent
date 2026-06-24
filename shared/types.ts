@@ -63,7 +63,7 @@ export type DiscussionStatus =
   | 'done'
   | 'rejected'
 
-export type MessageType = 'familiarize' | 'align' | 'idea' | 'critique' | 'refine' | 'summary' | 'system' | 'user'
+export type MessageType = 'familiarize' | 'align' | 'lead' | 'critique' | 'revise' | 'summary' | 'system' | 'user'
 
 export interface DiscussionMessage {
   id: string

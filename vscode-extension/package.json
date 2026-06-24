@@ -3,7 +3,7 @@
   "displayName": "AI 圆桌讨论",
   "publisher": "ai-roundtable",
   "description": "多个 AI 围绕你的项目进行圆桌讨论,自主浏览项目文件,讨论后生成修改方案",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.80.0"
   },

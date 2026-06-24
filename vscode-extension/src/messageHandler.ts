@@ -313,42 +313,114 @@ export class MessageHandler {
     }))
     this.send({ type: 'discussion:round-end', data: { id: discussionId, round: round1 } })
 
-    // 阶段三: 提案与互评
+    // 阶段三: 主线推进 - 轮流担任主推手,其他AI质疑,主推手修正
     const understandingText = participants.map((p) => `[${p.name}]: ${understandings[p.id] || ''}`).join('\n\n')
     const maxRounds = discussion.maxRounds
+    const allDiscussionText = understandingText // 累积所有讨论内容,供后续主推手参考
 
     for (let i = 0; i < maxRounds; i++) {
       if (this.isStopped(discussionId)) return
-      const roundIdx = 2 + i
-      const phase = i === 0 ? 'propose' : 'critique'
-      this.send({ type: 'discussion:round-start', data: { id: discussionId, round: roundIdx, phase } })
+      const roundIdx = 2 + i * 3 // 每轮占3个round: lead + critique + revise
+      const leadIdx = i % participants.length
+      const lead = participants[leadIdx]
+      const reviewers = participants.filter((_, idx) => idx !== leadIdx)
 
-      await Promise.all(participants.map(async (p) => {
+      // === 步骤1: 主推手提出方案 (含思考过程) ===
+      this.send({ type: 'discussion:round-start', data: { id: discussionId, round: roundIdx, phase: 'lead' } })
+      {
+        if (this.isStopped(discussionId)) break
+        const provider = await this.store.getProviderWithKey(lead.providerId)
+        if (provider) {
+          this.send({ type: 'discussion:message-start', data: { id: discussionId, participantId: lead.id, participantName: lead.name, round: roundIdx, type: 'lead' } })
+          const prevDiscussion = this.buildPrevMessages(discussionId, roundIdx - 1)
+          const system = `${lead.systemPrompt}
+
+你是「${lead.name}」,本轮的主推手。请从你的专业角度推进讨论主线。
+
+要求:
+1. 详细展示你的思考过程: 为什么这样设计? 考虑了哪些方案? 为什么选这个?
+2. 明确你的推进方向和核心决策
+3. 给出具体的方案/架构/代码设计
+4. 可使用工具查看代码细节,确保方案基于真实代码
+5. 主动提出你不确定的地方,邀请其他角色质疑`
+          const user = `## 讨论主题\n${discussion.topic}\n\n## 项目认知\n${allDiscussionText}\n\n## 前序讨论\n${prevDiscussion}\n\n请作为本轮主推手,详细展示你的思考过程和方案推进。`
+
+          try {
+            const result = await this.runAgentLoop(discussionId, provider, lead, roundIdx, 'lead', system, user)
+            this.saveAndBroadcastMessage(discussionId, roundIdx, lead, result, 'lead')
+          } catch (err) {
+            const errMsg = `主推失败: ${err instanceof Error ? err.message : String(err)}`
+            this.saveAndBroadcastMessage(discussionId, roundIdx, lead, errMsg, 'lead')
+          }
+        }
+      }
+      this.send({ type: 'discussion:round-end', data: { id: discussionId, round: roundIdx } })
+
+      // === 步骤2: 其他AI质疑 (并行) ===
+      const critiqueRound = roundIdx + 1
+      this.send({ type: 'discussion:round-start', data: { id: discussionId, round: critiqueRound, phase: 'critique' } })
+      const leadProposal = this.buildPrevMessages(discussionId, roundIdx)
+
+      await Promise.all(reviewers.map(async (p) => {
         if (this.isStopped(discussionId)) return
         const provider = await this.store.getProviderWithKey(p.providerId)
         if (!provider) return
 
-        this.send({ type: 'discussion:message-start', data: { id: discussionId, participantId: p.id, participantName: p.name, round: roundIdx, type: i === 0 ? 'idea' : 'refine' } })
+        this.send({ type: 'discussion:message-start', data: { id: discussionId, participantId: p.id, participantName: p.name, round: critiqueRound, type: 'critique' } })
+        const system = `${p.systemPrompt}
 
-        let system: string, user: string
-        if (i === 0) {
-          system = `${p.systemPrompt}\n\n你是「${p.name}」,提案阶段。基于你对项目的理解提出修改方案。可使用工具查看代码细节。`
-          user = `## 讨论主题\n${discussion.topic}\n\n## 你的项目认知\n${understandingText}\n\n请提出具体的修改方案。`
-        } else {
-          const prevMsgs = this.buildPrevMessages(discussionId, roundIdx - 1)
-          system = `${p.systemPrompt}\n\n你是「${p.name}」,第${i}轮互评。审阅其他AI方案,指出问题(幻觉/矛盾/过度设计),完善你的方案。可使用工具验证。`
-          user = `## 讨论主题\n${discussion.topic}\n\n## 前序讨论\n${prevMsgs}\n\n请审阅并完善方案。`
-        }
+你是「${p.name}」,正在审阅主推手「${lead.name}」的方案。
+
+要求:
+1. 深度理解主推手的思考方式、方向和过程
+2. 从你的专业角度提出质疑: 有什么问题? 什么可以改进?
+3. 指出潜在的幻觉、矛盾、过度设计或遗漏
+4. 提出具体的改进建议,而非泛泛而谈
+5. 可使用工具验证主推手的说法是否准确
+6. 如果方案合理,也要明确表示认可并说明原因`
+        const user = `## 讨论主题\n${discussion.topic}\n\n## 主推手「${lead.name}」的方案\n${leadProposal}\n\n请审阅并提出你的质疑和改进建议。`
 
         try {
-          const result = await this.runAgentLoop(discussionId, provider, p, roundIdx, i === 0 ? 'idea' : 'refine', system, user)
-          this.saveAndBroadcastMessage(discussionId, roundIdx, p, result, i === 0 ? 'idea' : 'refine')
+          const result = await this.runAgentLoop(discussionId, provider, p, critiqueRound, 'critique', system, user)
+          this.saveAndBroadcastMessage(discussionId, critiqueRound, p, result, 'critique')
         } catch (err) {
-          const errMsg = `${i === 0 ? '提案' : '互评'}失败: ${err instanceof Error ? err.message : String(err)}`
-          this.saveAndBroadcastMessage(discussionId, roundIdx, p, errMsg, i === 0 ? 'idea' : 'refine')
+          const errMsg = `质疑失败: ${err instanceof Error ? err.message : String(err)}`
+          this.saveAndBroadcastMessage(discussionId, critiqueRound, p, errMsg, 'critique')
         }
       }))
-      this.send({ type: 'discussion:round-end', data: { id: discussionId, round: roundIdx } })
+      this.send({ type: 'discussion:round-end', data: { id: discussionId, round: critiqueRound } })
+
+      // === 步骤3: 主推手修正方案 ===
+      const reviseRound = roundIdx + 2
+      this.send({ type: 'discussion:round-start', data: { id: discussionId, round: reviseRound, phase: 'revise' } })
+      {
+        if (this.isStopped(discussionId)) break
+        const provider = await this.store.getProviderWithKey(lead.providerId)
+        if (provider) {
+          this.send({ type: 'discussion:message-start', data: { id: discussionId, participantId: lead.id, participantName: lead.name, round: reviseRound, type: 'revise' } })
+          const critiques = this.buildPrevMessages(discussionId, critiqueRound)
+          const system = `${lead.systemPrompt}
+
+你是「${lead.name}」,本轮主推手。其他角色已对你的方案提出质疑。
+
+要求:
+1. 逐条回应每个质疑: 接受、拒绝还是部分采纳? 为什么?
+2. 基于有效质疑修正你的方案
+3. 明确哪些地方做了调整,为什么
+4. 如果某些质疑你不认同,给出理由
+5. 输出修正后的完整方案`
+          const user = `## 讨论主题\n${discussion.topic}\n\n## 你的原始方案\n${leadProposal}\n\n## 其他角色的质疑\n${critiques}\n\n请回应质疑并修正方案。`
+
+          try {
+            const result = await this.runAgentLoop(discussionId, provider, lead, reviseRound, 'revise', system, user)
+            this.saveAndBroadcastMessage(discussionId, reviseRound, lead, result, 'revise')
+          } catch (err) {
+            const errMsg = `修正失败: ${err instanceof Error ? err.message : String(err)}`
+            this.saveAndBroadcastMessage(discussionId, reviseRound, lead, errMsg, 'revise')
+          }
+        }
+      }
+      this.send({ type: 'discussion:round-end', data: { id: discussionId, round: reviseRound } })
     }
 
     if (this.isStopped(discussionId)) return
@@ -359,8 +431,8 @@ export class MessageHandler {
     const modProvider = await this.store.getProviderWithKey(moderator.providerId)
     if (!modProvider) return
 
-    const allMsgs = this.buildPrevMessages(discussionId, 1 + maxRounds)
-    const consensusRound = 2 + maxRounds
+    const allMsgs = this.buildPrevMessages(discussionId, 1 + maxRounds * 3)
+    const consensusRound = 2 + maxRounds * 3
     this.send({ type: 'discussion:message-start', data: { id: discussionId, participantId: moderator.id, participantName: moderator.name + '(主持人)', round: consensusRound, type: 'summary' } })
 
     let consensus = ''
@@ -514,7 +586,7 @@ export class MessageHandler {
     }
     const d = this.store.getDiscussion(discussionId)
     if (d) {
-      if (!d.rounds[round]) d.rounds[round] = { index: round, phase: type === 'familiarize' ? 'familiarize' : type === 'align' ? 'align' : 'propose', messages: [] }
+      if (!d.rounds[round]) d.rounds[round] = { index: round, phase: type === 'familiarize' ? 'familiarize' : type === 'align' ? 'align' : type === 'lead' ? 'lead' : type === 'critique' ? 'critique' : type === 'revise' ? 'revise' : 'propose', messages: [] }
       d.rounds[round].messages.push(msg)
       d.currentRound = round + 1
       this.store.saveDiscussion(d)
