@@ -1,5 +1,5 @@
 // 工具系统 - 让 AI 自主读取/浏览项目文件
-// 基于 vscode.workspace.fs 和 Node child_process
+// 基于 vscode.workspace.fs, 移植自 Cline 的工具设计
 import * as vscode from 'vscode'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -61,6 +61,17 @@ export const toolDefinitions: ToolDefinition[] = [
     },
   },
   {
+    name: 'list_code_definition_names',
+    description: '使用 VS Code 符号 API 列出指定文件中的函数、类、变量等定义名称。帮助快速了解代码结构。',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '相对于工作区根目录的文件路径' },
+      },
+      required: ['path'],
+    },
+  },
+  {
     name: 'write_file',
     description: '写入文件内容。如果文件已存在则覆盖。需要用户确认后才会执行。',
     input_schema: {
@@ -117,6 +128,51 @@ function shouldIgnore(name: string): boolean {
     }
     return false
   })
+}
+
+// 生成简易 diff (移植自 Cline)
+function generateDiff(original: string, modified: string): string {
+  const origLines = original.split('\n')
+  const modLines = modified.split('\n')
+  const maxLen = Math.max(origLines.length, modLines.length)
+  const diffLines: string[] = []
+
+  for (let i = 0; i < maxLen; i++) {
+    const o = origLines[i]
+    const m = modLines[i]
+    if (o === m) {
+      diffLines.push(`  ${m || ''}`)
+    } else {
+      if (o !== undefined) diffLines.push(`- ${o}`)
+      if (m !== undefined) diffLines.push(`+ ${m}`)
+    }
+  }
+  return diffLines.join('\n')
+}
+
+// 收集文件诊断信息 (移植自 Cline)
+async function getDiagnostics(uri: vscode.Uri): Promise<string> {
+  await new Promise((resolve) => setTimeout(resolve, 500)) // 等待 linter 运行
+  const diags = vscode.languages.getDiagnostics(uri)
+  if (diags.length === 0) return ''
+
+  const errors = diags.filter((d) => d.severity === vscode.DiagnosticSeverity.Error)
+  const warnings = diags.filter((d) => d.severity === vscode.DiagnosticSeverity.Warning)
+
+  const parts: string[] = []
+  if (errors.length > 0) {
+    parts.push(`\n[诊断] ${errors.length} 个错误:`)
+    for (const e of errors.slice(0, 10)) {
+      parts.push(`  行 ${e.range.start.line + 1}: ${e.message}`)
+    }
+  }
+  if (warnings.length > 0) {
+    parts.push(`\n[诊断] ${warnings.length} 个警告:`)
+    for (const w of warnings.slice(0, 5)) {
+      parts.push(`  行 ${w.range.start.line + 1}: ${w.message}`)
+    }
+  }
+  return parts.join('\n')
 }
 
 // ============ 工具执行 ============
@@ -221,14 +277,89 @@ async function searchFiles(args: { pattern: string; isContentSearch?: boolean })
   }
 }
 
+// 列出代码定义名称 (移植自 Cline - 使用 VS Code DocumentSymbolProvider)
+async function listCodeDefinitionNames(args: { path: string }): Promise<string> {
+  const uri = resolvePath(args.path)
+  if (!uri) return '错误: 没有打开的工作区'
+
+  try {
+    const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+      'vscode.executeDocumentSymbolProvider',
+      uri
+    )
+
+    if (!symbols || symbols.length === 0) {
+      // 回退: 简单正则匹配函数/类定义
+      const bytes = await vscode.workspace.fs.readFile(uri)
+      const content = Buffer.from(bytes).toString('utf8')
+      const defs: string[] = []
+      const patterns = [
+        /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g,
+        /(?:export\s+)?class\s+(\w+)/g,
+        /(?:export\s+)?(?:const|let|var)\s+(\w+)/g,
+        /(?:export\s+)?interface\s+(\w+)/g,
+        /(?:export\s+)?type\s+(\w+)/g,
+        /(?:export\s+)?enum\s+(\w+)/g,
+        /def\s+(\w+)/g,
+      ]
+      for (const p of patterns) {
+        let m
+        while ((m = p.exec(content)) !== null) {
+          defs.push(m[1])
+        }
+      }
+      return defs.length > 0
+        ? `${args.path} 中的定义 (${defs.length} 个):\n${[...new Set(defs)].join('\n')}`
+        : `${args.path} 中未找到代码定义`
+    }
+
+    const formatSymbol = (sym: vscode.DocumentSymbol, indent = ''): string => {
+      const kind = vscode.SymbolKind[sym.kind]
+      const line = sym.range.start.line + 1
+      let result = `${indent}${kind}: ${sym.name} (行 ${line})`
+      if (sym.children && sym.children.length > 0) {
+        for (const child of sym.children) {
+          result += '\n' + formatSymbol(child, indent + '  ')
+        }
+      }
+      return result
+    }
+
+    return `${args.path} 的代码结构:\n${symbols.map((s) => formatSymbol(s)).join('\n')}`
+  } catch (err) {
+    return `错误: ${err instanceof Error ? err.message : String(err)}`
+  }
+}
+
 async function writeFile(args: { path: string; content: string }): Promise<string> {
   const uri = resolvePath(args.path)
   if (!uri) return '错误: 没有打开的工作区'
 
   try {
+    // 读取原文件内容(如果存在)
+    let originalContent = ''
+    try {
+      const bytes = await vscode.workspace.fs.readFile(uri)
+      originalContent = Buffer.from(bytes).toString('utf8')
+    } catch {
+      // 文件不存在,新文件
+    }
+
     const content = Buffer.from(args.content, 'utf8')
     await vscode.workspace.fs.writeFile(uri, content)
-    return `✓ 文件已写入: ${args.path}`
+
+    // 收集诊断信息 (移植自 Cline)
+    const diagnostics = await getDiagnostics(uri)
+    const diffPreview = originalContent ? generateDiff(originalContent, args.content) : '(新文件)'
+
+    let result = `✓ 文件已写入: ${args.path}`
+    if (originalContent) {
+      result += `\n\n[变更预览]\n${diffPreview.slice(0, 2000)}`
+    }
+    if (diagnostics) {
+      result += diagnostics
+    }
+    return result
   } catch (err) {
     return `✗ 写入失败: ${err instanceof Error ? err.message : String(err)}`
   }
@@ -288,7 +419,16 @@ async function replaceInFile(args: { path: string; diff: string }): Promise<stri
     // 写入修改后的文件
     const content = Buffer.from(modifiedContent, 'utf8')
     await vscode.workspace.fs.writeFile(uri, content)
-    return `✓ 文件已修改: ${args.path} (${blocks.length} 处替换)`
+
+    // 收集诊断信息
+    const diagnostics = await getDiagnostics(uri)
+
+    let result = `✓ 文件已修改: ${args.path} (${blocks.length} 处替换)`
+    result += `\n\n[变更预览]\n${generateDiff(originalContent, modifiedContent).slice(0, 2000)}`
+    if (diagnostics) {
+      result += diagnostics
+    }
+    return result
   } catch (err) {
     return `✗ 修改失败: ${err instanceof Error ? err.message : String(err)}`
   }
@@ -326,6 +466,8 @@ export async function executeTool(name: string, args: any): Promise<string> {
       return readFile(args)
     case 'search_files':
       return searchFiles(args)
+    case 'list_code_definition_names':
+      return listCodeDefinitionNames(args)
     case 'write_file':
       return writeFile(args)
     case 'replace_in_file':
@@ -340,4 +482,56 @@ export async function executeTool(name: string, args: any): Promise<string> {
 // 判断是否为危险工具(需要用户确认)
 export function isDangerousTool(name: string): boolean {
   return name === 'write_file' || name === 'replace_in_file' || name === 'execute_command'
+}
+
+// ============ 上下文窗口管理 (移植自 Cline) ============
+
+// 估算 token 数 (粗略: 1 token ≈ 4 字符)
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4)
+}
+
+// 截断消息历史,保持上下文窗口在限制内
+export function truncateMessages(
+  messages: any[],
+  maxTokens: number = 120000,
+  systemPromptTokens: number = 2000
+): { messages: any[]; truncated: boolean } {
+  let totalTokens = systemPromptTokens
+  for (const msg of messages) {
+    const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content || '')
+    totalTokens += estimateTokens(content)
+    if (msg.tool_calls) {
+      totalTokens += estimateTokens(JSON.stringify(msg.tool_calls))
+    }
+  }
+
+  if (totalTokens <= maxTokens) {
+    return { messages, truncated: false }
+  }
+
+  // 从前面截断,保留最近的对话
+  const truncated = [...messages]
+  let removed = 0
+  while (totalTokens > maxTokens * 0.8 && truncated.length > 4) {
+    const removed_msg = truncated.shift()
+    if (removed_msg) {
+      const content = typeof removed_msg.content === 'string' ? removed_msg.content : JSON.stringify(removed_msg.content || '')
+      totalTokens -= estimateTokens(content)
+      if (removed_msg.tool_calls) {
+        totalTokens -= estimateTokens(JSON.stringify(removed_msg.tool_calls))
+      }
+      removed++
+    }
+  }
+
+  // 在截断后的消息开头插入提示
+  if (removed > 0) {
+    truncated.unshift({
+      role: 'system',
+      content: `[注意: 已截断 ${removed} 条早期消息以节省上下文窗口。请基于当前可见的上下文继续。]`
+    })
+  }
+
+  return { messages: truncated, truncated: true }
 }

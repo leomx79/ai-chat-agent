@@ -3,7 +3,7 @@ import * as vscode from 'vscode'
 import { nanoid } from 'nanoid'
 import { StateStore } from './store'
 import { streamChatWithTools, streamChat, fetchModels } from './llm'
-import { executeTool, isDangerousTool, toolDefinitions } from './tools'
+import { executeTool, isDangerousTool, toolDefinitions, truncateMessages } from './tools'
 import type { Provider, Participant, Discussion, DiscussionMessage, MessageType, FileChange } from '../../shared/types'
 import { diffLines } from 'diff'
 import * as path from 'path'
@@ -503,9 +503,11 @@ export class MessageHandler {
       let text = ''
       let result: { text: string; toolCalls: { name: string; arguments: any }[]; reasoningContent?: string }
       try {
+        // 上下文窗口管理 - 截断过长的消息历史 (移植自 Cline)
+        const { messages: truncatedMessages } = truncateMessages(messages)
         result = await streamChatWithTools(
           provider,
-          messages, // 直接传递完整消息数组
+          truncatedMessages, // 使用截断后的消息
           { model: participant.model, temperature: participant.temperature, systemPrompt: system },
           {
             onChunk: (c) => {
