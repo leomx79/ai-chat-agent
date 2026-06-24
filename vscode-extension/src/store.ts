@@ -165,6 +165,15 @@ export class StateStore {
     this.save(db)
   }
 
+  // ============ Auto-approve settings ============
+  getAutoApproveTools(): string[] {
+    return this.context.globalState.get<string[]>('auto-approve-tools') || []
+  }
+
+  setAutoApproveTools(tools: string[]): void {
+    this.context.globalState.update('auto-approve-tools', tools)
+  }
+
   // ============ Proposals ============
   getProposalByDiscussion(discussionId: string): Proposal | undefined {
     return this.load().proposals.find((p) => p.discussionId === discussionId)

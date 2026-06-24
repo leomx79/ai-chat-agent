@@ -73,6 +73,18 @@ export const toolDefinitions: ToolDefinition[] = [
     },
   },
   {
+    name: 'replace_in_file',
+    description: '基于 SEARCH/REPLACE 块的差异编辑工具。只需提供要修改的部分,无需重写整个文件。格式:\n```\n<<<<\n旧代码(精确匹配原文)\n====\n新代码\n>>>>\n```\n可包含多个 SEARCH/REPLACE 块。需要用户确认。',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '相对于工作区根目录的文件路径' },
+        diff: { type: 'string', description: 'SEARCH/REPLACE 块内容,多个块用换行分隔' },
+      },
+      required: ['path', 'diff'],
+    },
+  },
+  {
     name: 'execute_command',
     description: '在工作区目录执行终端命令并返回输出。需要用户确认后才会执行。',
     input_schema: {
@@ -222,6 +234,66 @@ async function writeFile(args: { path: string; content: string }): Promise<strin
   }
 }
 
+// SEARCH/REPLACE 块解析与应用 (移植自 Cline)
+async function replaceInFile(args: { path: string; diff: string }): Promise<string> {
+  const uri = resolvePath(args.path)
+  if (!uri) return '错误: 没有打开的工作区'
+
+  try {
+    // 读取原文件
+    const bytes = await vscode.workspace.fs.readFile(uri)
+    const originalContent = Buffer.from(bytes).toString('utf8')
+
+    // 解析 SEARCH/REPLACE 块
+    const blocks: { search: string; replace: string }[] = []
+    const lines = args.diff.split('\n')
+    let i = 0
+    while (i < lines.length) {
+      if (lines[i].trim() === '<<<<' || lines[i].trim() === '<<<<<<<') {
+        const searchLines: string[] = []
+        const replaceLines: string[] = []
+        i++
+        while (i < lines.length && lines[i].trim() !== '====' && lines[i].trim() !== '=======') {
+          searchLines.push(lines[i])
+          i++
+        }
+        i++ // skip ==== line
+        while (i < lines.length && lines[i].trim() !== '>>>>' && lines[i].trim() !== '>>>>>>>') {
+          replaceLines.push(lines[i])
+          i++
+        }
+        i++ // skip >>>> line
+        blocks.push({ search: searchLines.join('\n'), replace: replaceLines.join('\n') })
+      } else {
+        i++
+      }
+    }
+
+    if (blocks.length === 0) {
+      return '✗ 错误: 未找到有效的 SEARCH/REPLACE 块。请使用 <<<< ==== >>>> 格式。'
+    }
+
+    // 逐块应用替换
+    let modifiedContent = originalContent
+    for (const block of blocks) {
+      const searchStr = block.search
+      const replaceStr = block.replace
+      if (!modifiedContent.includes(searchStr)) {
+        return `✗ 错误: 未找到匹配的代码块。\n搜索内容:\n${searchStr.slice(0, 200)}\n\n请确保 SEARCH 部分与原文完全一致(包括空格和缩进)。`
+      }
+      // 只替换第一个匹配
+      modifiedContent = modifiedContent.replace(searchStr, replaceStr)
+    }
+
+    // 写入修改后的文件
+    const content = Buffer.from(modifiedContent, 'utf8')
+    await vscode.workspace.fs.writeFile(uri, content)
+    return `✓ 文件已修改: ${args.path} (${blocks.length} 处替换)`
+  } catch (err) {
+    return `✗ 修改失败: ${err instanceof Error ? err.message : String(err)}`
+  }
+}
+
 async function executeCommand(args: { command: string }): Promise<string> {
   const root = getWorkspaceRoot()
   if (!root) return '错误: 没有打开的工作区'
@@ -256,6 +328,8 @@ export async function executeTool(name: string, args: any): Promise<string> {
       return searchFiles(args)
     case 'write_file':
       return writeFile(args)
+    case 'replace_in_file':
+      return replaceInFile(args)
     case 'execute_command':
       return executeCommand(args)
     default:
@@ -265,5 +339,5 @@ export async function executeTool(name: string, args: any): Promise<string> {
 
 // 判断是否为危险工具(需要用户确认)
 export function isDangerousTool(name: string): boolean {
-  return name === 'write_file' || name === 'execute_command'
+  return name === 'write_file' || name === 'replace_in_file' || name === 'execute_command'
 }

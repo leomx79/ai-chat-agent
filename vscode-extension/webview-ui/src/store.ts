@@ -62,6 +62,9 @@ interface AppState {
   dismissError: () => void
   approveTool: (confirmId: string) => void
   denyTool: (confirmId: string) => void
+  // auto-approve settings
+  autoApproveTools: string[]
+  toggleAutoApprove: (tool: string) => void
 }
 
 function discussionsToItems(d: Discussion & { proposal?: Proposal }): StreamItem[] {
@@ -100,6 +103,13 @@ export const useStore = create<AppState>((set, get) => ({
   denyTool: (confirmId: string) => {
     postMessage({ type: 'discussion:tool-deny', confirmId })
     set({ pendingConfirm: null })
+  },
+  autoApproveTools: [],
+  toggleAutoApprove: (tool: string) => {
+    const current = get().autoApproveTools
+    const next = current.includes(tool) ? current.filter((t) => t !== tool) : [...current, tool]
+    set({ autoApproveTools: next })
+    postMessage({ type: 'settings:auto-approve', tools: next })
   },
 
   init: () => {

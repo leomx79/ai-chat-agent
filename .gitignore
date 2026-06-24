@@ -46,3 +46,5 @@ yarn-error.log*
 
 # Lock files (keep package-lock.json for reproducible builds)
 # Don't ignore package-lock.json
+
+cline-fork/

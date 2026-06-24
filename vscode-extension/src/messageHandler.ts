@@ -44,6 +44,9 @@ export class MessageHandler {
           this.pendingApprovals.get(msg.confirmId)?.resolve(false)
           this.pendingApprovals.delete(msg.confirmId)
           break
+        case 'settings:auto-approve':
+            this.store.setAutoApproveTools(msg.tools || [])
+            break
         case 'ready':
           this.handleReady()
           break
@@ -542,8 +545,9 @@ export class MessageHandler {
         const tc = result.toolCalls[i]
         const callId = toolCallIds[i]
 
-        // 危险工具需确认 - 内联审批
-        if (isDangerousTool(tc.name)) {
+        // 危险工具需确认 - 内联审批 (支持 auto-approve)
+        const autoApproveTools = this.store.getAutoApproveTools()
+        if (isDangerousTool(tc.name) && !autoApproveTools.includes(tc.name)) {
           const confirmId = `confirm_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
           this.send({ type: 'discussion:tool-confirm', data: { id: discussionId, confirmId, participantId: participant.id, participantName: participant.name, name: tc.name, args: tc.arguments, round } })
           const approved = await new Promise<boolean>((resolve) => {

@@ -4,6 +4,22 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-06-24
+
+### Changed
+- **讨论机制重构**: 从"各说各话"改为"主线推进 + 交叉质疑"三步流程
+  - 步骤1: 主推手展示思考过程和方案推进 (lead)
+  - 步骤2: 其他AI从专业角度并行质疑 (critique)
+  - 步骤3: 主推手逐条回应质疑并修正方案 (revise)
+- **轮值主推手**: 每轮由不同AI担任主推手,确保各专业角度轮转
+- **消息类型更新**: `idea`→`lead`, `refine`→`revise`, 新增思考过程透明化
+- **并行优化**: 熟悉项目、认知对齐、质疑阶段全部并行执行
+
+### Fixed
+- DeepSeek `deepseek-reasoner` 的 `reasoning_content` 正确传回 API
+- 工具调用消息缺少 `tool_call_id` 导致 400 错误
+- 多AI并行流式输出时前端状态管理
+
 ### 计划中
 - 支持更多 LLM 提供商 (OpenAI, Anthropic, Google)
 - 文件引用 (@file) 功能
