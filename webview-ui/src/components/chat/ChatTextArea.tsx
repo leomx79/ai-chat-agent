@@ -280,6 +280,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			platform,
 			localWorkflowToggles,
 			globalWorkflowToggles,
+			navigateToDiscussion,
 		} = useExtensionState()
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
@@ -1700,7 +1701,22 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</VSCodeButton>
 							</Tooltip>
 							<ServersToggleModal />
-							<ClineRulesToggleModal />
+						<Tooltip tipText="Multi-AI Discussion">
+							<VSCodeButton
+								data-testid="discussion-button"
+								appearance="icon"
+								aria-label="Multi-AI Discussion"
+								onClick={() => navigateToDiscussion?.()}
+								style={{ padding: "0px 0px", height: "20px" }}>
+								<ButtonContainer>
+									<span
+										className="codicon codicon-organization flex items-center"
+										style={{ fontSize: "14px", marginBottom: -3 }}
+									/>
+								</ButtonContainer>
+							</VSCodeButton>
+						</Tooltip>
+						<ClineRulesToggleModal />
 							<ModelContainer ref={modelSelectorRef}>
 								<ModelButtonWrapper ref={buttonRef}>
 									<ModelDisplayButton
