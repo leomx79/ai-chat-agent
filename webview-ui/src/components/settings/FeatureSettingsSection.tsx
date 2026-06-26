@@ -26,12 +26,11 @@ const FeatureSettingsSection = () => {
 						const checked = e.target.checked === true
 						setEnableCheckpointsSetting(checked)
 					}}>
-					Enable Checkpoints
-				</VSCodeCheckbox>
-				<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-					Enables extension to save checkpoints of workspace throughout the task. Uses git under the hood which may not
-					work well with large workspaces.
-				</p>
+					启用检查点
+			</VSCodeCheckbox>
+			<p className="text-xs text-[var(--vscode-descriptionForeground)]">
+				启用扩展在任务过程中保存工作区检查点。底层使用 git，在大型工作区中可能无法正常工作。
+			</p>
 			</div>
 			<div style={{ marginTop: 10 }}>
 				<VSCodeCheckbox
@@ -40,11 +39,11 @@ const FeatureSettingsSection = () => {
 						const checked = e.target.checked === true
 						setMcpMarketplaceEnabled(checked)
 					}}>
-					Enable MCP Marketplace
-				</VSCodeCheckbox>
-				<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-					Enables the MCP Marketplace tab for discovering and installing MCP servers.
-				</p>
+					启用 MCP 市场
+			</VSCodeCheckbox>
+			<p className="text-xs text-[var(--vscode-descriptionForeground)]">
+				启用 MCP 市场选项卡，用于发现和安装 MCP 服务器。
+			</p>
 			</div>
 			<div style={{ marginTop: 10 }}>
 				<VSCodeCheckbox
@@ -53,11 +52,11 @@ const FeatureSettingsSection = () => {
 						const checked = e.target.checked === true
 						setMcpRichDisplayEnabled(checked)
 					}}>
-					Enable Rich MCP Display
-				</VSCodeCheckbox>
-				<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-					Enables rich formatting for MCP responses. When disabled, responses will be shown in plain text.
-				</p>
+					启用富文本 MCP 显示
+			</VSCodeCheckbox>
+			<p className="text-xs text-[var(--vscode-descriptionForeground)]">
+				启用 MCP 响应的富文本格式。禁用后，响应将以纯文本显示。
+			</p>
 			</div>
 			<div style={{ marginTop: 10 }}>
 				<VSCodeCheckbox
@@ -66,18 +65,18 @@ const FeatureSettingsSection = () => {
 						const checked = e.target.checked === true
 						setMcpResponsesCollapsed(checked)
 					}}>
-					Collapse MCP Responses
-				</VSCodeCheckbox>
-				<p className="text-xs text-[var(--vscode-descriptionForeground)]">
-					Sets the default display mode for MCP response panels
-				</p>
+					折叠 MCP 响应
+			</VSCodeCheckbox>
+			<p className="text-xs text-[var(--vscode-descriptionForeground)]">
+				设置 MCP 响应面板的默认显示模式
+			</p>
 			</div>
 			<div style={{ marginTop: 10 }}>
 				<label
 					htmlFor="openai-reasoning-effort-dropdown"
 					className="block text-sm font-medium text-[var(--vscode-foreground)] mb-1">
-					OpenAI Reasoning Effort
-				</label>
+					OpenAI 推理强度
+			</label>
 				<VSCodeDropdown
 					id="openai-reasoning-effort-dropdown"
 					currentValue={chatSettings.openAIReasoningEffort || "medium"}
@@ -89,13 +88,13 @@ const FeatureSettingsSection = () => {
 						})
 					}}
 					className="w-full">
-					<VSCodeOption value="low">Low</VSCodeOption>
-					<VSCodeOption value="medium">Medium</VSCodeOption>
-					<VSCodeOption value="high">High</VSCodeOption>
+					<VSCodeOption value="low">低</VSCodeOption>
+				<VSCodeOption value="medium">中</VSCodeOption>
+				<VSCodeOption value="high">高</VSCodeOption>
 				</VSCodeDropdown>
 				<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
-					Reasoning effort for the OpenAI family of models(applies to all OpenAI model providers)
-				</p>
+				OpenAI 系列模型的推理强度（适用于所有 OpenAI 模型提供商）
+			</p>
 			</div>
 		</div>
 	)

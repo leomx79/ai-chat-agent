@@ -46,37 +46,37 @@ interface SettingsTab {
 export const SETTINGS_TABS: SettingsTab[] = [
 	{
 		id: "api-config",
-		name: "API Configuration",
-		tooltipText: "API Configuration",
-		headerText: "API Configuration",
+		name: "API配置",
+		tooltipText: "API配置",
+		headerText: "API配置",
 		icon: Webhook,
 	},
 	{
 		id: "general",
-		name: "General",
-		tooltipText: "General Settings",
-		headerText: "General Settings",
+		name: "通用",
+		tooltipText: "通用设置",
+		headerText: "通用设置",
 		icon: Settings,
 	},
 	{
 		id: "features",
-		name: "Features",
-		tooltipText: "Feature Settings",
-		headerText: "Feature Settings",
+		name: "功能",
+		tooltipText: "功能设置",
+		headerText: "功能设置",
 		icon: CheckCheck,
 	},
 	{
 		id: "browser",
-		name: "Browser",
-		tooltipText: "Browser Settings",
-		headerText: "Browser Settings",
+		name: "浏览器",
+		tooltipText: "浏览器设置",
+		headerText: "浏览器设置",
 		icon: SquareMousePointer,
 	},
 	{
 		id: "terminal",
-		name: "Terminal",
-		tooltipText: "Terminal Settings",
-		headerText: "Terminal Settings",
+		name: "终端",
+		tooltipText: "终端设置",
+		headerText: "终端设置",
 		icon: SquareTerminal,
 	},
 	// Only show in dev mode
@@ -84,18 +84,18 @@ export const SETTINGS_TABS: SettingsTab[] = [
 		? [
 				{
 					id: "debug",
-					name: "Debug",
-					tooltipText: "Debug Tools",
-					headerText: "Debug",
+					name: "调试",
+					tooltipText: "调试工具",
+					headerText: "调试",
 					icon: FlaskConical,
 				},
 			]
 		: []),
 	{
 		id: "about",
-		name: "About",
-		tooltipText: "About Cline",
-		headerText: "About",
+		name: "关于",
+		tooltipText: "关于 Cline",
+		headerText: "关于",
 		icon: Info,
 	},
 ]
@@ -676,15 +676,15 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 		<Tab>
 			<TabHeader className="flex justify-between items-center gap-2">
 				<div className="flex items-center gap-1">
-					<h3 className="text-[var(--vscode-foreground)] m-0">Settings</h3>
-				</div>
-				<div className="flex gap-2">
-					<VSCodeButton appearance="secondary" onClick={handleCancel}>
-						Cancel
-					</VSCodeButton>
-					<VSCodeButton onClick={() => handleSubmit(false)} disabled={!hasUnsavedChanges}>
-						Save
-					</VSCodeButton>
+					<h3 className="text-[var(--vscode-foreground)] m-0">设置</h3>
+			</div>
+			<div className="flex gap-2">
+				<VSCodeButton appearance="secondary" onClick={handleCancel}>
+					取消
+				</VSCodeButton>
+				<VSCodeButton onClick={() => handleSubmit(false)} disabled={!hasUnsavedChanges}>
+					保存
+				</VSCodeButton>
 				</div>
 			</TabHeader>
 
@@ -777,8 +777,8 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 															cursor: isSwitchingMode ? "not-allowed" : "pointer",
 														}}>
 														{isSwitchingMode && chatSettings.mode === "act"
-															? "Switching..."
-															: "Plan Mode"}
+														? "切换中..."
+														: "规划模式"}
 													</TabButton>
 													<TabButton
 														isActive={chatSettings.mode === "act"}
@@ -789,8 +789,8 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 															cursor: isSwitchingMode ? "not-allowed" : "pointer",
 														}}>
 														{isSwitchingMode && chatSettings.mode === "plan"
-															? "Switching..."
-															: "Act Mode"}
+														? "切换中..."
+														: "执行模式"}
 													</TabButton>
 												</div>
 
@@ -821,13 +821,11 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 													const checked = e.target.checked === true
 													setPlanActSeparateModelsSetting(checked)
 												}}>
-												Use different models for Plan and Act modes
-											</VSCodeCheckbox>
-											<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
-												Switching between Plan and Act mode will persist the API and model used in the
-												previous mode. This may be helpful e.g. when using a strong reasoning model to
-												architect a plan for a cheaper coding model to act on.
-											</p>
+												为规划和执行模式使用不同的模型
+										</VSCodeCheckbox>
+										<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
+											在规划和执行模式之间切换时，将保留前一模式中使用的 API 和模型。这可能会有所帮助，例如使用强大的推理模型为更便宜的编码模型制定计划。
+										</p>
 										</div>
 									</Section>
 								</div>
@@ -853,22 +851,21 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 													const checked = e.target.checked === true
 													setTelemetrySetting(checked ? "enabled" : "disabled")
 												}}>
-												Allow anonymous error and usage reporting
-											</VSCodeCheckbox>
-											<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
-												Help improve Cline by sending anonymous usage data and error reports. No code,
-												prompts, or personal information are ever sent. See our{" "}
-												<VSCodeLink
-													href="https://docs.cline.bot/more-info/telemetry"
-													className="text-inherit">
-													telemetry overview
-												</VSCodeLink>{" "}
-												and{" "}
-												<VSCodeLink href="https://cline.bot/privacy" className="text-inherit">
-													privacy policy
-												</VSCodeLink>{" "}
-												for more details.
-											</p>
+												允许匿名错误和使用情况报告
+										</VSCodeCheckbox>
+										<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
+											通过发送匿名使用数据和错误报告来帮助改进 Cline。不会发送任何代码、提示或个人信息。请参阅我们的{" "}
+											<VSCodeLink
+												href="https://docs.cline.bot/more-info/telemetry"
+												className="text-inherit">
+												遥测概述
+											</VSCodeLink>{" "}
+											和{" "}
+											<VSCodeLink href="https://cline.bot/privacy" className="text-inherit">
+												隐私政策
+											</VSCodeLink>{" "}
+											了解更多详情。
+										</p>
 										</div>
 									</Section>
 								</div>
@@ -916,17 +913,17 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 											onClick={() => handleResetState()}
 											className="mt-[5px] w-auto"
 											style={{ backgroundColor: "var(--vscode-errorForeground)", color: "black" }}>
-											Reset Workspace State
-										</VSCodeButton>
-										<VSCodeButton
-											onClick={() => handleResetState(true)}
-											className="mt-[5px] w-auto"
-											style={{ backgroundColor: "var(--vscode-errorForeground)", color: "black" }}>
-											Reset Global State
-										</VSCodeButton>
-										<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
-											This will reset all global state and secret storage in the extension.
-										</p>
+											重置工作区状态
+									</VSCodeButton>
+									<VSCodeButton
+										onClick={() => handleResetState(true)}
+										className="mt-[5px] w-auto"
+										style={{ backgroundColor: "var(--vscode-errorForeground)", color: "black" }}>
+										重置全局状态
+									</VSCodeButton>
+									<p className="text-xs mt-[5px] text-[var(--vscode-descriptionForeground)]">
+										这将重置扩展中的所有全局状态和密钥存储。
+									</p>
 									</Section>
 								</div>
 							)}
@@ -938,11 +935,11 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 									<Section>
 										<div className="text-center text-[var(--vscode-descriptionForeground)] text-xs leading-[1.2] px-0 py-0 pr-2 pb-[15px] mt-auto">
 											<p className="break-words m-0 p-0">
-												If you have any questions or feedback, feel free to open an issue at{" "}
-												<VSCodeLink href="https://github.com/cline/cline" className="inline">
-													https://github.com/cline/cline
-												</VSCodeLink>
-											</p>
+											如果您有任何问题或反馈，欢迎在此提交 issue：{" "}
+											<VSCodeLink href="https://github.com/cline/cline" className="inline">
+												https://github.com/cline/cline
+											</VSCodeLink>
+										</p>
 											<p className="italic mt-[10px] mb-0 p-0">v{version}</p>
 										</div>
 									</Section>
@@ -960,14 +957,14 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 				onConfirm={handleConfirmDiscard}
 				onCancel={handleCancelDiscard}
 				onSave={pendingModeSwitch ? handleSaveAndSwitch : undefined}
-				title={pendingModeSwitch ? "Save Changes?" : "Unsaved Changes"}
-				description={
-					pendingModeSwitch
-						? `Do you want to save your changes to ${chatSettings.mode === "plan" ? "Plan" : "Act"} mode before switching to ${pendingModeSwitch === "plan" ? "Plan" : "Act"} mode?`
-						: "You have unsaved changes. Are you sure you want to discard them?"
-				}
-				confirmText={pendingModeSwitch ? "Switch Without Saving" : "Discard Changes"}
-				saveText="Save & Switch"
+				title={pendingModeSwitch ? "保存更改？" : "未保存的更改"}
+			description={
+				pendingModeSwitch
+					? `您想在切换到${pendingModeSwitch === "plan" ? "规划" : "执行"}模式之前保存对${chatSettings.mode === "plan" ? "规划" : "执行"}模式的更改吗？`
+					: "您有未保存的更改。确定要放弃吗？"
+			}
+			confirmText={pendingModeSwitch ? "不保存直接切换" : "放弃更改"}
+			saveText="保存并切换"
 				showSaveOption={!!pendingModeSwitch}
 			/>
 		</Tab>

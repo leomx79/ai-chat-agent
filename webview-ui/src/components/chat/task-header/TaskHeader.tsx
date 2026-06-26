@@ -1,4 +1,4 @@
-import HeroTooltip from "@/components/common/HeroTooltip"
+﻿import HeroTooltip from "@/components/common/HeroTooltip"
 import Thumbnails from "@/components/common/Thumbnails"
 import { normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -168,7 +168,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							flex: 1,
 							whiteSpace: "nowrap",
 						}}>
-						<HeroTooltip content="Current tokens used in this request">
+						<HeroTooltip content="本次请求使用的当前token数">
 							<span className="cursor-pointer">{formatLargeNumber(lastApiReqTotalTokens || 0)}</span>
 						</HeroTooltip>
 						<div
@@ -178,7 +178,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 								gap: "3px",
 								flex: 1,
 							}}>
-							<HeroTooltip content="Context window usage">
+							<HeroTooltip content="上下文窗口使用量">
 								<div
 									style={{
 										flex: 1,
@@ -198,7 +198,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 									/>
 								</div>
 							</HeroTooltip>
-							<HeroTooltip content="Maximum context window size for this model">
+							<HeroTooltip content="此模型的最大上下文窗口大小">
 								<span className="cursor-pointer">{formatLargeNumber(contextWindow)}</span>
 							</HeroTooltip>
 						</div>
@@ -260,8 +260,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 								minWidth: 0, // This allows the div to shrink below its content size
 							}}>
 							<span style={{ fontWeight: "bold" }}>
-								Task
-								{!isTaskExpanded && ":"}
+							任务
+							{!isTaskExpanded && ":"}
 							</span>
 							{!isTaskExpanded && (
 								<span className="ph-no-capture" style={{ marginLeft: 4 }}>
@@ -290,7 +290,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						appearance="icon"
 						onClick={onClose}
 						style={{ marginLeft: 6, flexShrink: 0 }}
-						aria-label="Close task">
+						aria-label="关闭任务">
 						<span className="codicon codicon-close"></span>
 					</VSCodeButton>
 				</div>
@@ -344,7 +344,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											backgroundColor: "var(--vscode-badge-background)",
 										}}
 										onClick={() => setIsTextExpanded(!isTextExpanded)}>
-										See more
+										查看更多
 									</div>
 								</div>
 							)}
@@ -387,9 +387,9 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 										flexWrap: "wrap",
 									}}>
 									<div style={{ display: "flex", alignItems: "center" }}>
-										<span style={{ fontWeight: "bold" }}>Tokens:</span>
+										<span style={{ fontWeight: "bold" }}>Token数：</span>
 									</div>
-									<HeroTooltip content="Prompt Tokens">
+									<HeroTooltip content="提示Token">
 										<span className="flex items-center gap-[3px] cursor-pointer">
 											<i
 												className="codicon codicon-arrow-up"
@@ -402,7 +402,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											{formatLargeNumber(tokensIn || 0)}
 										</span>
 									</HeroTooltip>
-									<HeroTooltip content="Completion Tokens">
+									<HeroTooltip content="完成Token">
 										<span className="flex items-center gap-[3px] cursor-pointer">
 											<i
 												className="codicon codicon-arrow-down"
@@ -443,10 +443,10 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											flexWrap: "wrap",
 										}}>
 										<div style={{ display: "flex", alignItems: "center" }}>
-											<span style={{ fontWeight: "bold" }}>Cache:</span>
+											<span style={{ fontWeight: "bold" }}>缓存：</span>
 										</div>
 										{cacheWrites !== undefined && cacheWrites > 0 && (
-											<HeroTooltip content="Tokens written to cache">
+											<HeroTooltip content="写入缓存的Token">
 												<span className="flex items-center gap-[3px] cursor-pointer">
 													<i
 														className="codicon codicon-database"
@@ -461,7 +461,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											</HeroTooltip>
 										)}
 										{cacheReads !== undefined && cacheReads > 0 && (
-											<HeroTooltip content="Tokens read from cache">
+											<HeroTooltip content="从缓存读取的Token">
 												<span className="flex items-center gap-[3px] cursor-pointer">
 													<i
 														className={"codicon codicon-arrow-right"}
@@ -521,7 +521,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 														}, 300)
 													}}
 													className="underline cursor-pointer bg-transparent border-0 p-0 text-inherit font-inherit">
-													disabling checkpoints.
+													禁用检查点。
 												</button>
 											</>
 										)}
@@ -534,7 +534,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 														color: "inherit",
 														textDecoration: "underline",
 													}}>
-													See here for instructions.
+													查看此处说明。
 												</a>
 											</>
 										)}

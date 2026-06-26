@@ -28,7 +28,7 @@ export const TerminalSettingsSection: React.FC = () => {
 
 		const seconds = parseFloat(value)
 		if (isNaN(seconds) || seconds <= 0) {
-			setInputError("Please enter a positive number")
+			setInputError("请输入一个正数")
 			return
 		}
 
@@ -79,8 +79,8 @@ export const TerminalSettingsSection: React.FC = () => {
 		<div id="terminal-settings-section" style={{ marginBottom: 20 }}>
 			<div style={{ marginBottom: 15 }}>
 				<label htmlFor="default-terminal-profile" style={{ fontWeight: "500", display: "block", marginBottom: 5 }}>
-					Default Terminal Profile
-				</label>
+				默认终端配置
+			</label>
 				<VSCodeDropdown
 					id="default-terminal-profile"
 					value={defaultTerminalProfile || "default"}
@@ -93,20 +93,20 @@ export const TerminalSettingsSection: React.FC = () => {
 					))}
 				</VSCodeDropdown>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: "5px 0 0 0" }}>
-					Select the default terminal Cline will use. 'Default' uses your VSCode global setting.
-				</p>
+				选择 Cline 将使用的默认终端。"默认"使用您的 VSCode 全局设置。
+			</p>
 			</div>
 
 			<div style={{ marginBottom: 15 }}>
 				<div style={{ marginBottom: 8 }}>
 					<label style={{ fontWeight: "500", display: "block", marginBottom: 5 }}>
-						Shell integration timeout (seconds)
-					</label>
+					Shell 集成超时（秒）
+				</label>
 					<div style={{ display: "flex", alignItems: "center" }}>
 						<VSCodeTextField
 							style={{ width: "100%" }}
 							value={inputValue}
-							placeholder="Enter timeout in seconds"
+							placeholder="输入超时秒数"
 							onChange={(event) => handleTimeoutChange(event as Event)}
 							onBlur={handleInputBlur}
 						/>
@@ -116,9 +116,8 @@ export const TerminalSettingsSection: React.FC = () => {
 					)}
 				</div>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>
-					Set how long Cline waits for shell integration to activate before executing commands. Increase this value if
-					you experience terminal connection timeouts.
-				</p>
+				设置 Cline 等待 shell 集成激活的时间，然后再执行命令。如果遇到终端连接超时问题，请增加此值。
+			</p>
 			</div>
 
 			<div style={{ marginBottom: 15 }}>
@@ -130,9 +129,8 @@ export const TerminalSettingsSection: React.FC = () => {
 					</VSCodeCheckbox>
 				</div>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: 0 }}>
-					When enabled, Cline will reuse existing terminal windows that aren't in the current working directory. Disable
-					this if you experience issues with task lockout after a terminal command.
-				</p>
+				启用后，Cline 将复用不在当前工作目录中的现有终端窗口。如果在终端命令后遇到任务锁定问题，请禁用此选项。
+			</p>
 			</div>
 			<TerminalOutputLineLimitSlider />
 		</div>

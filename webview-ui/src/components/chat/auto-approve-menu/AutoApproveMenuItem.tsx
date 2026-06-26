@@ -97,7 +97,7 @@ const AutoApproveMenuItem = ({
 							{onToggleFavorite && !condensed && (
 								<HeroTooltip
 									delay={500}
-									content={favorited ? "Remove from quick-access menu" : "Add to quick-access menu"}>
+									content={favorited ? "从快捷菜单中移除" : "添加到快捷菜单"}>
 									<span
 										className={`p-0.5 codicon codicon-${favorited ? "star-full" : "star-empty"} star`}
 										style={{

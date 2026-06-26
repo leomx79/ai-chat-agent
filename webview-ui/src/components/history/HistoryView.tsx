@@ -323,9 +323,9 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							color: "var(--vscode-foreground)",
 							margin: 0,
 						}}>
-						History
+						历史
 					</h3>
-					<VSCodeButton onClick={onDone}>Done</VSCodeButton>
+					<VSCodeButton onClick={onDone}>完成</VSCodeButton>
 				</div>
 				<div style={{ padding: "5px 17px 6px 17px" }}>
 					<div
@@ -373,25 +373,25 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							style={{ display: "flex", flexWrap: "wrap" }}
 							value={sortOption}
 							onChange={(e) => setSortOption((e.target as HTMLInputElement).value as SortOption)}>
-							<VSCodeRadio value="newest">Newest</VSCodeRadio>
-							<VSCodeRadio value="oldest">Oldest</VSCodeRadio>
-							<VSCodeRadio value="mostExpensive">Most Expensive</VSCodeRadio>
-							<VSCodeRadio value="mostTokens">Most Tokens</VSCodeRadio>
-							<VSCodeRadio value="mostRelevant" disabled={!searchQuery} style={{ opacity: searchQuery ? 1 : 0.5 }}>
-								Most Relevant
-							</VSCodeRadio>
-							<CustomFilterRadio
-								checked={showCurrentWorkspaceOnly}
-								onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
-								icon="workspace"
-								label="Workspace"
-							/>
-							<CustomFilterRadio
-								checked={showFavoritesOnly}
-								onChange={() => setShowFavoritesOnly(!showFavoritesOnly)}
-								icon="star-full"
-								label="Favorites"
-							/>
+							<VSCodeRadio value="newest">最新</VSCodeRadio>
+						<VSCodeRadio value="oldest">最旧</VSCodeRadio>
+						<VSCodeRadio value="mostExpensive">最贵</VSCodeRadio>
+						<VSCodeRadio value="mostTokens">最多 Tokens</VSCodeRadio>
+						<VSCodeRadio value="mostRelevant" disabled={!searchQuery} style={{ opacity: searchQuery ? 1 : 0.5 }}>
+							最相关
+						</VSCodeRadio>
+						<CustomFilterRadio
+							checked={showCurrentWorkspaceOnly}
+							onChange={() => setShowCurrentWorkspaceOnly(!showCurrentWorkspaceOnly)}
+							icon="workspace"
+							label="工作区"
+						/>
+						<CustomFilterRadio
+							checked={showFavoritesOnly}
+							onChange={() => setShowFavoritesOnly(!showFavoritesOnly)}
+							icon="star-full"
+							label="收藏"
+						/>
 						</VSCodeRadioGroup>
 
 						<div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
@@ -399,13 +399,13 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								onClick={() => {
 									handleBatchHistorySelect(true)
 								}}>
-								Select All
-							</VSCodeButton>
-							<VSCodeButton
-								onClick={() => {
-									handleBatchHistorySelect(false)
-								}}>
-								Select None
+								全选
+						</VSCodeButton>
+						<VSCodeButton
+							onClick={() => {
+								handleBatchHistorySelect(false)
+							}}>
+							取消全选
 							</VSCodeButton>
 						</div>
 					</div>
@@ -727,10 +727,10 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							disabled={deleteAllDisabled || taskHistory.length === 0}
 							onClick={() => {
 								setDeleteAllDisabled(true)
-								const confirmDelete = window.confirm("Are you sure you want to delete all task history?")
+								const confirmDelete = window.confirm("确定要删除所有任务历史吗？")
 								if (confirmDelete) {
 									const preserveFavorites = window.confirm(
-										"Would you like to preserve favorited tasks?\n\nClick 'OK' to preserve favorites, or 'Cancel' to delete everything.",
+										"是否保留已收藏的任务？\n\n点击\"确定\"保留收藏，或点击\"取消\"删除全部。",
 									)
 									TaskServiceClient.deleteAllTaskHistory(BooleanRequest.create({ value: preserveFavorites }))
 										.catch((error) => console.error("Error deleting task history:", error))
@@ -739,7 +739,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									setDeleteAllDisabled(false)
 								}
 							}}>
-							Delete All History{totalTasksSize !== null ? ` (${formatSize(totalTasksSize)})` : ""}
+							删除所有历史{totalTasksSize !== null ? ` (${formatSize(totalTasksSize)})` : ""}
 						</DangerButton>
 					)}
 				</div>
@@ -758,7 +758,7 @@ const ExportButton = ({ itemId }: { itemId: string }) => (
 				console.error("Failed to export task:", err),
 			)
 		}}>
-		<div style={{ fontSize: "11px", fontWeight: 500, opacity: 1 }}>EXPORT</div>
+		<div style={{ fontSize: "11px", fontWeight: 500, opacity: 1 }}>导出</div>
 	</VSCodeButton>
 )
 

@@ -47,8 +47,8 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 					className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} scale-90 transition-transform duration-200`}
 				/>
 				<span className="codicon codicon-comment-discussion scale-90" />
-				<span className="font-medium text-xs uppercase tracking-wide">Recent Tasks</span>
-			</div>
+				<span className="font-medium text-xs uppercase tracking-wide">最近任务</span>
+		</div>
 
 			{isExpanded && (
 				<div className="px-5 space-y-3">
@@ -81,7 +81,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 											<div
 												className="absolute top-3 right-3 z-20 drop-shadow-sm"
 												style={{ color: "var(--vscode-button-background)" }}>
-												<span className="codicon codicon-star-full" aria-label="Favorited" />
+												<span className="codicon codicon-star-full" aria-label="已收藏" />
 											</div>
 										)}
 
@@ -100,36 +100,36 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 											</div>
 
 											<div className="text-xs text-[var(--vscode-descriptionForeground)] opacity-75 space-x-1">
-												<span>
-													Tokens: ↑{formatLargeNumber(item.tokensIn || 0)} ↓
-													{formatLargeNumber(item.tokensOut || 0)}
-												</span>
-												{!!item.cacheWrites && (
-													<>
-														<span
-															style={{
-																color: "color-mix(in srgb, var(--vscode-descriptionForeground) 40%, transparent)",
-															}}>
-															•
-														</span>
-														<span>
-															Cache: +{formatLargeNumber(item.cacheWrites || 0)} →{" "}
-															{formatLargeNumber(item.cacheReads || 0)}
-														</span>
-													</>
-												)}
-												{!!item.totalCost && (
-													<>
-														<span
-															style={{
-																color: "color-mix(in srgb, var(--vscode-descriptionForeground) 40%, transparent)",
-															}}>
-															•
-														</span>
-														<span>API Cost: ${item.totalCost?.toFixed(4)}</span>
-													</>
-												)}
-											</div>
+											<span>
+												Tokens：↑{formatLargeNumber(item.tokensIn || 0)} ↓
+												{formatLargeNumber(item.tokensOut || 0)}
+											</span>
+											{!!item.cacheWrites && (
+												<>
+													<span
+														style={{
+															color: "color-mix(in srgb, var(--vscode-descriptionForeground) 40%, transparent)",
+														}}>
+														•
+													</span>
+													<span>
+														缓存: +{formatLargeNumber(item.cacheWrites || 0)} →{" "}
+														{formatLargeNumber(item.cacheReads || 0)}
+													</span>
+												</>
+											)}
+											{!!item.totalCost && (
+												<>
+													<span
+														style={{
+															color: "color-mix(in srgb, var(--vscode-descriptionForeground) 40%, transparent)",
+														}}>
+														•
+													</span>
+													<span>API 费用: ${item.totalCost?.toFixed(4)}</span>
+												</>
+											)}
+										</div>
 										</div>
 									</div>
 								))}
@@ -142,7 +142,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 										fontSize: "var(--vscode-font-size)",
 									}}>
 									<span className="codicon codicon-history scale-90"></span>
-									<span className="font-medium">View all history</span>
+									<span className="font-medium">查看所有历史</span>
 								</button>
 							</div>
 						</>
@@ -155,7 +155,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								border: "1px solid color-mix(in srgb, var(--vscode-panel-border) 30%, transparent)",
 								backdropFilter: "blur(8px)",
 							}}>
-							No recent tasks
+							没有最近的任务
 						</div>
 					)}
 				</div>

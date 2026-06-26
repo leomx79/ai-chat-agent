@@ -11,8 +11,8 @@ const PreferredLanguageSetting: React.FC<PreferredLanguageSettingProps> = ({ cha
 	return (
 		<div style={{}}>
 			<label htmlFor="preferred-language-dropdown" className="block mb-1 text-sm font-medium">
-				Preferred Language
-			</label>
+			首选语言
+		</label>
 			<VSCodeDropdown
 				id="preferred-language-dropdown"
 				currentValue={chatSettings.preferredLanguage || "English"}
@@ -44,8 +44,8 @@ const PreferredLanguageSetting: React.FC<PreferredLanguageSettingProps> = ({ cha
 				<VSCodeOption value="Turkish - Türkçe">Turkish - Türkçe</VSCodeOption>
 			</VSCodeDropdown>
 			<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-				The language that Cline should use for communication.
-			</p>
+			Cline 用于交流的语言。
+		</p>
 		</div>
 	)
 }

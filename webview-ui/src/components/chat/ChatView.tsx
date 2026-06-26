@@ -1,4 +1,4 @@
-import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+﻿import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import debounce from "debounce"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useDeepCompareEffect, useEvent, useMount } from "react-use"
@@ -133,8 +133,8 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	const [selectedFiles, setSelectedFiles] = useState<string[]>([])
 
 	const [enableButtons, setEnableButtons] = useState<boolean>(false)
-	const [primaryButtonText, setPrimaryButtonText] = useState<string | undefined>("Approve")
-	const [secondaryButtonText, setSecondaryButtonText] = useState<string | undefined>("Reject")
+	const [primaryButtonText, setPrimaryButtonText] = useState<string | undefined>("批准")
+	const [secondaryButtonText, setSecondaryButtonText] = useState<string | undefined>("拒绝")
 	const [didClickCancel, setDidClickCancel] = useState(false)
 	const virtuosoRef = useRef<VirtuosoHandle>(null)
 	const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({})
@@ -248,23 +248,23 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					const isPartial = lastMessage.partial === true
 					switch (lastMessage.ask) {
 						case "api_req_failed":
-							setSendingDisabled(true)
-							setEnableButtons(true)
-							setPrimaryButtonText("Retry")
-							setSecondaryButtonText("Start New Task")
-							break
-						case "mistake_limit_reached":
-							setSendingDisabled(false)
-							setEnableButtons(true)
-							setPrimaryButtonText("Proceed Anyways")
-							setSecondaryButtonText("Start New Task")
-							break
-						case "auto_approval_max_req_reached":
-							setSendingDisabled(true)
-							setEnableButtons(true)
-							setPrimaryButtonText("Proceed")
-							setSecondaryButtonText("Start New Task")
-							break
+						setSendingDisabled(true)
+						setEnableButtons(true)
+						setPrimaryButtonText("重试")
+						setSecondaryButtonText("新建任务")
+						break
+					case "mistake_limit_reached":
+						setSendingDisabled(false)
+						setEnableButtons(true)
+						setPrimaryButtonText("仍然继续")
+						setSecondaryButtonText("新建任务")
+						break
+					case "auto_approval_max_req_reached":
+						setSendingDisabled(true)
+						setEnableButtons(true)
+						setPrimaryButtonText("继续")
+						setSecondaryButtonText("新建任务")
+						break
 						case "followup":
 							setSendingDisabled(isPartial)
 							setEnableButtons(false)
@@ -283,79 +283,79 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							const tool = JSON.parse(lastMessage.text || "{}") as ClineSayTool
 							switch (tool.tool) {
 								case "editedExistingFile":
-								case "newFileCreated":
-									setPrimaryButtonText("Save")
-									setSecondaryButtonText("Reject")
-									break
-								default:
-									setPrimaryButtonText("Approve")
-									setSecondaryButtonText("Reject")
-									break
+							case "newFileCreated":
+								setPrimaryButtonText("保存")
+								setSecondaryButtonText("拒绝")
+								break
+							default:
+								setPrimaryButtonText("批准")
+								setSecondaryButtonText("拒绝")
+								break
 							}
 							break
 						case "browser_action_launch":
-							setSendingDisabled(isPartial)
-							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Approve")
-							setSecondaryButtonText("Reject")
-							break
-						case "command":
-							setSendingDisabled(isPartial)
-							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Run Command")
-							setSecondaryButtonText("Reject")
-							break
+						setSendingDisabled(isPartial)
+						setEnableButtons(!isPartial)
+						setPrimaryButtonText("批准")
+						setSecondaryButtonText("拒绝")
+						break
+					case "command":
+					setSendingDisabled(isPartial)
+						setEnableButtons(!isPartial)
+						setPrimaryButtonText("运行命令")
+						setSecondaryButtonText("拒绝")
+						break
 						case "command_output":
-							setSendingDisabled(false)
-							setEnableButtons(true)
-							setPrimaryButtonText("Proceed While Running")
-							setSecondaryButtonText(undefined)
-							break
-						case "use_mcp_server":
-							setSendingDisabled(isPartial)
-							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Approve")
-							setSecondaryButtonText("Reject")
-							break
-						case "completion_result":
-							// extension waiting for feedback. but we can just present a new task button
-							setSendingDisabled(isPartial)
-							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Start New Task")
-							setSecondaryButtonText(undefined)
-							break
+						setSendingDisabled(false)
+						setEnableButtons(true)
+						setPrimaryButtonText("运行时继续")
+						setSecondaryButtonText(undefined)
+						break
+					case "use_mcp_server":
+						setSendingDisabled(isPartial)
+						setEnableButtons(!isPartial)
+						setPrimaryButtonText("批准")
+						setSecondaryButtonText("拒绝")
+						break
+					case "completion_result":
+						// extension waiting for feedback. but we can just present a new task button
+						setSendingDisabled(isPartial)
+						setEnableButtons(!isPartial)
+						setPrimaryButtonText("新建任务")
+						setSecondaryButtonText(undefined)
+						break
 						case "resume_task":
-							setSendingDisabled(false)
-							setEnableButtons(true)
-							setPrimaryButtonText("Resume Task")
-							setSecondaryButtonText(undefined)
-							setDidClickCancel(false) // special case where we reset the cancel button state
-							break
-						case "resume_completed_task":
-							setSendingDisabled(false)
-							setEnableButtons(true)
-							setPrimaryButtonText("Start New Task")
-							setSecondaryButtonText(undefined)
-							setDidClickCancel(false)
-							break
+						setSendingDisabled(false)
+						setEnableButtons(true)
+						setPrimaryButtonText("恢复任务")
+						setSecondaryButtonText(undefined)
+						setDidClickCancel(false) // special case where we reset the cancel button state
+						break
+					case "resume_completed_task":
+						setSendingDisabled(false)
+						setEnableButtons(true)
+						setPrimaryButtonText("新建任务")
+						setSecondaryButtonText(undefined)
+						setDidClickCancel(false)
+						break
 						case "new_task":
-							setSendingDisabled(isPartial)
-							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Start New Task with Context")
-							setSecondaryButtonText(undefined)
-							break
+						setSendingDisabled(isPartial)
+						setEnableButtons(!isPartial)
+						setPrimaryButtonText("带上下文新建任务")
+						setSecondaryButtonText(undefined)
+						break
 						case "condense":
-							setSendingDisabled(isPartial)
-							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Condense Conversation")
-							setSecondaryButtonText(undefined)
-							break
+						setSendingDisabled(isPartial)
+						setEnableButtons(!isPartial)
+						setPrimaryButtonText("压缩对话")
+						setSecondaryButtonText(undefined)
+						break
 						case "report_bug":
-							setSendingDisabled(isPartial)
-							setEnableButtons(!isPartial)
-							setPrimaryButtonText("Report GitHub issue")
-							setSecondaryButtonText(undefined)
-							break
+						setSendingDisabled(isPartial)
+						setEnableButtons(!isPartial)
+						setPrimaryButtonText("报告GitHub问题")
+						setSecondaryButtonText(undefined)
+						break
 					}
 					break
 				case "say":
@@ -404,8 +404,8 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		if (messages.length === 0) {
 			setSendingDisabled(false)
 			setEnableButtons(false)
-			setPrimaryButtonText("Approve")
-			setSecondaryButtonText("Reject")
+			setPrimaryButtonText("批准")
+			setSecondaryButtonText("拒绝")
 		}
 	}, [messages.length])
 
@@ -1033,7 +1033,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	useEvent("wheel", handleWheel, window, { passive: true }) // passive improves scrolling performance
 
 	const placeholderText = useMemo(() => {
-		const text = task ? "Type a message..." : "Type your task here..."
+		const text = task ? "输入消息..." : "在这里输入你的任务..."
 		return text
 	}, [task])
 
@@ -1226,7 +1226,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 										marginLeft: isStreaming ? 0 : "6px",
 									}}
 									onClick={() => handleSecondaryButtonClick(inputValue, selectedImages, selectedFiles)}>
-									{isStreaming ? "Cancel" : secondaryButtonText}
+									{isStreaming ? "取消" : secondaryButtonText}
 								</VSCodeButton>
 							)}
 						</div>

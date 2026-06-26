@@ -129,14 +129,14 @@ const ThinkingBudgetSlider = ({ apiConfiguration, setApiConfiguration, maxBudget
 	return (
 		<Container>
 			<VSCodeCheckbox checked={isEnabled} onChange={handleToggleChange}>
-				Enable extended thinking
-			</VSCodeCheckbox>
+				启用扩展思考
+				</VSCodeCheckbox>
 
 			{isEnabled && (
 				<>
 					<LabelContainer>
 						<Label htmlFor="thinking-budget-slider">
-							<strong>Budget:</strong> {localValue.toLocaleString()} tokens
+							<strong>预算：</strong> {localValue.toLocaleString()} tokens
 						</Label>
 					</LabelContainer>
 					<RangeInput
@@ -152,7 +152,7 @@ const ThinkingBudgetSlider = ({ apiConfiguration, setApiConfiguration, maxBudget
 						$value={localValue}
 						$min={DEFAULT_MIN_VALID_TOKENS}
 						$max={maxSliderValue}
-						aria-label={`Thinking budget: ${localValue.toLocaleString()} tokens`}
+						aria-label={`思考预算：${localValue.toLocaleString()} tokens`}
 						aria-valuemin={DEFAULT_MIN_VALID_TOKENS}
 						aria-valuemax={maxSliderValue}
 						aria-valuenow={localValue}
@@ -160,7 +160,7 @@ const ThinkingBudgetSlider = ({ apiConfiguration, setApiConfiguration, maxBudget
 					/>
 
 					<Description id="thinking-budget-description">
-						Higher budgets may allow you to achieve more comprehensive and nuanced reasoning
+						更高的预算可能让您获得更全面和细致的推理
 					</Description>
 				</>
 			)}

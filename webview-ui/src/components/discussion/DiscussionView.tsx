@@ -28,12 +28,12 @@ import type {
 // --- Constants ---
 
 const ROLE_PRESETS = [
-	{ value: "architect", label: "Architect" },
-	{ value: "reviewer", label: "Reviewer" },
-	{ value: "implementer", label: "Implementer" },
-	{ value: "product", label: "Product" },
-	{ value: "performance", label: "Performance" },
-	{ value: "tester", label: "Tester" },
+	{ value: "architect", label: "架构师" },
+	{ value: "reviewer", label: "代码审查员" },
+	{ value: "implementer", label: "实现工程师" },
+	{ value: "product", label: "产品顾问" },
+	{ value: "performance", label: "性能优化师" },
+	{ value: "tester", label: "测试工程师" },
 ]
 
 const PROVIDER_OPTIONS = [
@@ -72,22 +72,22 @@ const PARTICIPANT_COLORS = [
 const PHASES: DiscussionPhase[] = ["familiarize", "align", "discuss", "converge", "propose"]
 
 const PHASE_LABELS: Record<DiscussionPhase, string> = {
-	familiarize: "Familiarize",
-	align: "Align",
-	discuss: "Discuss",
-	converge: "Converge",
-	propose: "Propose",
+	familiarize: "熟悉",
+	align: "对齐",
+	discuss: "讨论",
+	converge: "共识",
+	propose: "方案",
 }
 
 const MESSAGE_TYPE_STYLES: Record<string, { bg: string; fg: string; label: string }> = {
-	familiarize: { bg: "rgba(96,165,250,0.15)", fg: "#60a5fa", label: "Familiarize" },
-	align: { bg: "rgba(34,211,238,0.15)", fg: "#22d3ee", label: "Align" },
-	lead: { bg: "rgba(167,139,250,0.15)", fg: "#a78bfa", label: "Lead" },
-	critique: { bg: "rgba(251,146,60,0.15)", fg: "#fb923c", label: "Critique" },
-	revise: { bg: "rgba(251,191,36,0.15)", fg: "#fbbf24", label: "Revise" },
-	user: { bg: "rgba(52,211,153,0.15)", fg: "#34d399", label: "User" },
-	system: { bg: "rgba(148,163,184,0.15)", fg: "#94a3b8", label: "System" },
-	error: { bg: "rgba(248,113,113,0.15)", fg: "#f87171", label: "Error" },
+	familiarize: { bg: "rgba(96,165,250,0.15)", fg: "#60a5fa", label: "熟悉" },
+	align: { bg: "rgba(34,211,238,0.15)", fg: "#22d3ee", label: "对齐" },
+	lead: { bg: "rgba(167,139,250,0.15)", fg: "#a78bfa", label: "主导" },
+	critique: { bg: "rgba(251,146,60,0.15)", fg: "#fb923c", label: "批评" },
+	revise: { bg: "rgba(251,191,36,0.15)", fg: "#fbbf24", label: "修订" },
+	user: { bg: "rgba(52,211,153,0.15)", fg: "#34d399", label: "用户" },
+	system: { bg: "rgba(148,163,184,0.15)", fg: "#94a3b8", label: "系统" },
+	error: { bg: "rgba(248,113,113,0.15)", fg: "#f87171", label: "错误" },
 }
 
 // --- Types ---
@@ -188,11 +188,11 @@ const ToolCallCard = ({ item }: { item: DiscussionStreamItem }) => {
 					<ChevronRight size={14} style={{ color: "var(--vscode-descriptionForeground)" }} />
 				)}
 				<span className="text-sm font-medium" style={{ color: "var(--vscode-foreground)" }}>
-					{item.toolName || "Tool"}
+					{item.toolName || "工具"}
 				</span>
 				{item.participantName && (
 					<span className="text-xs" style={{ color: "var(--vscode-descriptionForeground)" }}>
-						by {item.participantName}
+						由 {item.participantName}
 					</span>
 				)}
 				<span className="ml-auto flex items-center gap-1">
@@ -202,7 +202,7 @@ const ToolCallCard = ({ item }: { item: DiscussionStreamItem }) => {
 					<span
 						className="text-xs px-1.5 py-0.5 rounded"
 						style={{ backgroundColor: `${statusColor}22`, color: statusColor }}>
-						{item.toolStatus || "pending"}
+						{item.toolStatus || "等待中"}
 					</span>
 				</span>
 			</button>
@@ -211,7 +211,7 @@ const ToolCallCard = ({ item }: { item: DiscussionStreamItem }) => {
 					{item.toolArgs != null && (
 						<div>
 							<div className="text-xs mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-								Arguments
+								参数
 							</div>
 							<pre
 								className="text-xs p-2 rounded overflow-x-auto"
@@ -228,7 +228,7 @@ const ToolCallCard = ({ item }: { item: DiscussionStreamItem }) => {
 					{item.toolResult && (
 						<div>
 							<div className="text-xs mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-								Result
+								结果
 							</div>
 							<pre
 								className="text-xs p-2 rounded overflow-x-auto max-h-48 overflow-y-auto"
@@ -303,7 +303,7 @@ const ProposalReviewPanel = () => {
 			<div className="flex items-center gap-2 mb-2">
 				<Sparkles size={18} style={{ color: "var(--vscode-focusBorder)" }} />
 				<h3 className="text-base font-semibold" style={{ color: "var(--vscode-foreground)" }}>
-					Proposal
+					方案
 				</h3>
 			</div>
 			{summary && (
@@ -313,7 +313,7 @@ const ProposalReviewPanel = () => {
 			)}
 			<div className="space-y-1 mb-3">
 				<div className="text-sm font-medium mb-1" style={{ color: "var(--vscode-foreground)" }}>
-					File Changes ({changes.length})
+					文件更改 ({changes.length})
 				</div>
 				{changes.map((change, i) => {
 					const key = `${change.filePath}-${i}`
@@ -360,7 +360,7 @@ const ProposalReviewPanel = () => {
 						backgroundColor: "var(--vscode-button-background)",
 						color: "var(--vscode-button-foreground)",
 					}}>
-					Approve
+					批准
 				</button>
 				<button
 					onClick={rejectProposal}
@@ -370,7 +370,7 @@ const ProposalReviewPanel = () => {
 						color: "var(--vscode-foreground)",
 						backgroundColor: "transparent",
 					}}>
-					Reject
+					拒绝
 				</button>
 			</div>
 		</div>
@@ -404,25 +404,25 @@ const ParticipantRow = ({
 			<div className="flex items-center gap-2">
 				<Avatar name={participant.name || "?"} color={participant.color} size={28} />
 				<span className="text-sm font-medium" style={{ color: "var(--vscode-foreground)" }}>
-					Participant {index + 1}
+					参与者 {index + 1}
 				</span>
 				<button
 					onClick={onRemove}
 					className="ml-auto p-1 rounded hover:bg-[var(--vscode-list-hoverBackground)] transition-colors"
-					title="Remove participant">
+					title="移除参与者">
 					<Trash2 size={14} style={{ color: "var(--vscode-errorForeground)" }} />
 				</button>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				<div>
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-						Name
+						名称
 					</label>
 					<input
 						type="text"
 						value={participant.name}
 						onChange={(e) => update("name", e.target.value)}
-						placeholder="e.g. Alice"
+						placeholder="例如 Alice"
 						className="w-full text-sm px-2 py-1 rounded border"
 						style={{
 							backgroundColor: "var(--vscode-input-background)",
@@ -433,7 +433,7 @@ const ParticipantRow = ({
 				</div>
 				<div>
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-						Role Preset
+						角色预设
 					</label>
 					<select
 						value={participant.role}
@@ -453,7 +453,7 @@ const ParticipantRow = ({
 				</div>
 				<div>
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-						Color
+						颜色
 					</label>
 					<div className="flex items-center gap-1 flex-wrap">
 						{PARTICIPANT_COLORS.map((color) => (
@@ -471,7 +471,7 @@ const ParticipantRow = ({
 				</div>
 				<div>
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-						Provider
+						提供商
 					</label>
 					<select
 						value={participant.providerId || ""}
@@ -482,7 +482,7 @@ const ParticipantRow = ({
 							color: "var(--vscode-input-foreground)",
 							borderColor: "var(--vscode-input-border)",
 						}}>
-						<option value="">Select provider...</option>
+						<option value="">选择提供商...</option>
 						{PROVIDER_OPTIONS.map((p) => (
 							<option key={p.value} value={p.value}>
 								{p.label}
@@ -492,13 +492,13 @@ const ParticipantRow = ({
 				</div>
 				<div>
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-						Model ID
+						模型ID
 					</label>
 					<input
 						type="text"
 						value={participant.modelId || ""}
 						onChange={(e) => update("modelId", e.target.value)}
-						placeholder="e.g. claude-sonnet-4-20250514"
+						placeholder="例如 claude-sonnet-4-20250514"
 						className="w-full text-sm px-2 py-1 rounded border"
 						style={{
 							backgroundColor: "var(--vscode-input-background)",
@@ -509,13 +509,13 @@ const ParticipantRow = ({
 				</div>
 				<div>
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
-						API Key
+						API密钥
 					</label>
 					<input
 						type="password"
 						value={participant.apiKey || ""}
 						onChange={(e) => update("apiKey", e.target.value)}
-						placeholder="Optional (uses global config)"
+						placeholder="可选(使用全局配置)"
 						className="w-full text-sm px-2 py-1 rounded border"
 						style={{
 							backgroundColor: "var(--vscode-input-background)",
@@ -665,7 +665,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 					</button>
 					<Users size={18} style={{ color: "var(--vscode-focusBorder)" }} />
 					<h2 className="text-base font-semibold" style={{ color: "var(--vscode-foreground)" }}>
-						Multi-AI Discussion
+						多AI讨论
 					</h2>
 				</div>
 
@@ -675,13 +675,13 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 						{/* Topic */}
 						<div>
 							<label className="text-sm font-medium block mb-1" style={{ color: "var(--vscode-foreground)" }}>
-								Topic
-							</label>
-							<input
-								type="text"
-								value={topic}
-								onChange={(e) => setTopic(e.target.value)}
-								placeholder="What should the AIs discuss?"
+							主题
+						</label>
+						<input
+							type="text"
+							value={topic}
+							onChange={(e) => setTopic(e.target.value)}
+							placeholder="AI们应该讨论什么?"
 								className="w-full text-sm px-3 py-2 rounded border"
 								style={{
 									backgroundColor: "var(--vscode-input-background)",
@@ -695,7 +695,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 						<div className="grid grid-cols-2 gap-3">
 							<div>
 								<label className="text-sm font-medium block mb-1" style={{ color: "var(--vscode-foreground)" }}>
-									Mode
+									模式
 								</label>
 								<select
 									value={mode}
@@ -706,13 +706,13 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 										color: "var(--vscode-input-foreground)",
 										borderColor: "var(--vscode-input-border)",
 									}}>
-									<option value="roundtable">Roundtable (autonomous)</option>
-									<option value="chat">Chat (interactive)</option>
+									<option value="roundtable">圆桌会议(自主)</option>
+									<option value="chat">自由对话(交互式)</option>
 								</select>
 							</div>
 							<div>
 								<label className="text-sm font-medium block mb-1" style={{ color: "var(--vscode-foreground)" }}>
-									Max Rounds
+									最大轮次
 								</label>
 								<input
 									type="number"
@@ -734,7 +734,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 						<div>
 							<div className="flex items-center justify-between mb-2">
 								<label className="text-sm font-medium" style={{ color: "var(--vscode-foreground)" }}>
-									Participants ({participants.length})
+									参与者 ({participants.length})
 								</label>
 								<button
 									onClick={handleAddParticipant}
@@ -743,7 +743,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 										backgroundColor: "var(--vscode-button-background)",
 										color: "var(--vscode-button-foreground)",
 									}}>
-									<Plus size={14} /> Add
+									<Plus size={14} /> 添加
 								</button>
 							</div>
 							<div className="space-y-2">
@@ -769,8 +769,8 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 								color: "var(--vscode-button-foreground)",
 							}}>
 							<Sparkles size={16} />
-							Start Discussion
-						</button>
+						开始讨论
+					</button>
 					</div>
 				</div>
 			</div>
@@ -799,10 +799,10 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 					</h2>
 					<div className="flex items-center gap-2 mt-0.5">
 						<span className="text-xs" style={{ color: "var(--vscode-descriptionForeground)" }}>
-							{discussionState.config.participants.length} participants
+							{discussionState.config.participants.length} 位参与者
 						</span>
 						<span className="text-xs" style={{ color: "var(--vscode-descriptionForeground)" }}>
-							· Round {discussionState.currentRound}/{discussionState.config.maxRounds}
+							· 轮次 {discussionState.currentRound}/{discussionState.config.maxRounds}
 						</span>
 						<span
 							className="text-xs px-1.5 py-0.5 rounded"
@@ -823,7 +823,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 							backgroundColor: "var(--vscode-errorForeground)",
 							color: "#fff",
 						}}>
-						<CircleStop size={14} /> Stop
+						<CircleStop size={14} /> 停止
 					</button>
 				)}
 			</div>
@@ -843,7 +843,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 					)}
 					{discussionStreamItems.map((item) => {
 						if (item.kind === "error") {
-							return <ErrorCard key={item.id} message={item.toolResult || "An error occurred"} />
+							return <ErrorCard key={item.id} message={item.toolResult || "发生错误"} />
 						}
 						if (item.kind === "tool") {
 							return <ToolCallCard key={item.id} item={item} />
@@ -900,7 +900,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 							color: "var(--vscode-button-foreground)",
 						}}>
 						<Sparkles size={16} />
-						Generate Proposal
+						生成方案
 					</button>
 				</div>
 			)}
@@ -913,7 +913,7 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 							value={chatInput}
 							onChange={(e) => setChatInput(e.target.value)}
 							onKeyDown={handleKeyDown}
-							placeholder="Type a message to the discussion..."
+							placeholder="输入消息到讨论中..."
 							rows={1}
 							className="flex-1 text-sm px-3 py-2 rounded border resize-none"
 							style={{
