@@ -164,6 +164,8 @@ export abstract class WebviewProvider {
 		// we installed this package in the extension so that we can access it how its intended from the extension (the font file is likely bundled in vscode), and we just import the css fileinto our react app we don't have access to it
 		// don't forget to add font-src ${webview.cspSource};
 		const codiconsUri = this.getExtensionUri("node_modules", "@vscode", "codicons", "dist", "codicon.css")
+		// Fallback: codicon font file from the React build output (always packaged in VSIX)
+		const codiconFontUri = this.getExtensionUri("webview-ui", "build", "assets", "fonts", "codicon.ttf")
 
 		const katexCssUri = this.getExtensionUri("webview-ui", "node_modules", "katex", "dist", "katex.min.css")
 
@@ -198,6 +200,13 @@ export abstract class WebviewProvider {
 				<meta name="theme-color" content="#000000">
 				<link rel="stylesheet" type="text/css" href="${stylesUri}">
 				<link href="${codiconsUri}" rel="stylesheet" />
+				<style>
+					@font-face {
+						font-family: "codicon";
+						font-display: block;
+						src: url("${codiconFontUri}") format("truetype");
+					}
+				</style>
 				<link href="${katexCssUri}" rel="stylesheet" />
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none';
 					connect-src https://*.posthog.com https://*.cline.bot https://*.firebaseauth.com https://*.firebaseio.com https://*.googleapis.com https://*.firebase.com; 
