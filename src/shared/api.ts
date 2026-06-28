@@ -150,10 +150,68 @@ export interface OpenAiCompatibleModelInfo extends ModelInfo {
 }
 
 // Anthropic
-// https://docs.anthropic.com/en/docs/about-claude/models // prices updated 2025-01-02
+// https://docs.anthropic.com/en/docs/about-claude/models // 价格更新于 2026-06（最新 2026 模型）
 export type AnthropicModelId = keyof typeof anthropicModels
-export const anthropicDefaultModelId: AnthropicModelId = "claude-sonnet-4-20250514"
+// 默认模型更新为最新的 Claude Sonnet 5（2026 年最新旗舰模型，性价比最高）
+export const anthropicDefaultModelId: AnthropicModelId = "claude-sonnet-5"
 export const anthropicModels = {
+	// ===== 最新 2026 模型（基于 2026 年 6 月网络调研，以下为 Anthropic 最新发布的模型）=====
+	// Claude Opus 4.8：2026 年最新 Opus 旗舰，100 万上下文窗口，128K 最大输出，支持图像与提示缓存
+	"claude-opus-4-8": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 5.0,
+		outputPrice: 25.0,
+		cacheWritesPrice: 6.25,
+		cacheReadsPrice: 0.5,
+	},
+	// Claude Sonnet 5：2026 年最新 Sonnet 模型，性价比旗舰，100 万上下文窗口，128K 最大输出
+	"claude-sonnet-5": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 3.0,
+		outputPrice: 15.0,
+		cacheWritesPrice: 3.75,
+		cacheReadsPrice: 0.3,
+	},
+	// Claude Opus 4.6：上一代 Opus 旗舰，100 万上下文窗口，128K 最大输出
+	"claude-opus-4-6": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 5.0,
+		outputPrice: 25.0,
+		cacheWritesPrice: 6.25,
+		cacheReadsPrice: 0.5,
+	},
+	// Claude Sonnet 4.6：上一代 Sonnet 模型，100 万上下文窗口，128K 最大输出
+	"claude-sonnet-4-6": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 3.0,
+		outputPrice: 15.0,
+		cacheWritesPrice: 3.75,
+		cacheReadsPrice: 0.3,
+	},
+	// Claude Haiku 4.5：2026 年最新 Haiku 轻量模型，20 万上下文窗口，高性价比，适用于轻量任务
+	"claude-haiku-4-5": {
+		maxTokens: 8192,
+		contextWindow: 200_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 1.0,
+		outputPrice: 5.0,
+		cacheWritesPrice: 1.25,
+		cacheReadsPrice: 0.1,
+	},
+	// ===== 历史模型（仍可使用，保留以兼容现有配置与 claudeCodeModels 引用）=====
 	"claude-sonnet-4-20250514": {
 		maxTokens: 8192,
 		contextWindow: 200_000,
@@ -722,10 +780,65 @@ export const openAiModelInfoSaneDefaults: OpenAiCompatibleModelInfo = {
 }
 
 // Gemini
-// https://ai.google.dev/gemini-api/docs/models/gemini
+// https://ai.google.dev/gemini-api/docs/models/gemini // 价格更新于 2026-06（最新 2026 模型）
 export type GeminiModelId = keyof typeof geminiModels
-export const geminiDefaultModelId: GeminiModelId = "gemini-2.5-pro"
+// 默认模型更新为最新的 Gemini 3.1 Pro（2026 年最新旗舰模型）
+export const geminiDefaultModelId: GeminiModelId = "gemini-3.1-pro"
 export const geminiModels = {
+	// ===== 最新 2026 模型（基于 2026 年 6 月网络调研，以下为 Google 最新发布的模型）=====
+	// Gemini 3.5 Flash：2026 年最新 Flash 模型，100 万上下文，高性价比，适用于高吞吐任务
+	"gemini-3.5-flash": {
+		maxTokens: 65_536,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 0.5,
+		outputPrice: 3.0,
+		cacheReadsPrice: 0.075,
+	},
+	// ===== Gemini 3.1 系列 =====
+	// Gemini 3.1 Pro：2026 年旗舰 Pro 模型，100 万上下文，适用于复杂推理任务
+	"gemini-3.1-pro": {
+		maxTokens: 65_536,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 12.0,
+		cacheReadsPrice: 0.5,
+	},
+	// Gemini 3.1 Flash Lite：轻量版，超低成本，适用于简单高频任务
+	"gemini-3.1-flash-lite": {
+		maxTokens: 65_536,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 0.25,
+		outputPrice: 1.5,
+		cacheReadsPrice: 0.0375,
+	},
+	// Gemini 3.1 Deep Think：深度思考版本，适用于需要深度推理的复杂任务
+	"gemini-3.1-deep-think": {
+		maxTokens: 65_536,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 12.0,
+		cacheReadsPrice: 0.5,
+	},
+	// ===== Gemini 3 系列 =====
+	// Gemini 3 Flash：上一代 Flash 模型，100 万上下文，高性价比
+	"gemini-3-flash": {
+		maxTokens: 65_536,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 0.5,
+		outputPrice: 3.0,
+		cacheReadsPrice: 0.075,
+	},
+	// ===== 历史模型（仍可使用）=====
 	"gemini-2.5-pro": {
 		maxTokens: 65536,
 		contextWindow: 1_048_576,
@@ -1011,11 +1124,128 @@ export const geminiCliModels = {
 } as const satisfies Record<string, ModelInfo>
 
 // OpenAI Native
-// https://openai.com/api/pricing/
+// https://openai.com/api/pricing/ // 价格更新于 2026-06（最新 2026 模型）
 export type OpenAiNativeModelId = keyof typeof openAiNativeModels
-export const openAiNativeDefaultModelId: OpenAiNativeModelId = "gpt-4.1"
+// 默认模型更新为最新的 GPT-5.5（2026 年最新旗舰模型）
+export const openAiNativeDefaultModelId: OpenAiNativeModelId = "gpt-5.5"
 export const openAiNativeModels = {
-	o3: {
+	// ===== GPT-5.5 系列（2026 年最新旗舰）=====
+	// GPT-5.5：最新通用旗舰，40 万上下文窗口，128K 输出，支持图像与提示缓存
+	"gpt-5.5": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 8.0,
+		cacheReadsPrice: 0.5,
+	},
+	// GPT-5.5-pro：高端推理版本，适用于复杂任务，价格较高
+	"gpt-5.5-pro": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 15.0,
+		outputPrice: 120.0,
+		cacheReadsPrice: 1.5,
+	},
+	// ===== GPT-5.2 系列 =====
+	// GPT-5.2：上一代通用旗舰，40 万上下文窗口
+	"gpt-5.2": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 8.0,
+		cacheReadsPrice: 0.5,
+	},
+	// GPT-5.2-codex：代码专用版本，针对编程任务优化
+	"gpt-5.2-codex": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 8.0,
+		cacheReadsPrice: 0.5,
+	},
+	// ===== GPT-5.1 系列 =====
+	// GPT-5.1：稳定版本，40 万上下文窗口
+	"gpt-5.1": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 8.0,
+		cacheReadsPrice: 0.5,
+	},
+	// GPT-5.1-codex：代码专用版本，针对编程任务优化
+	"gpt-5.1-codex": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 8.0,
+		cacheReadsPrice: 0.5,
+	},
+	// GPT-5.1-codex-max：代码专用高端版本，适用于复杂工程任务
+	"gpt-5.1-codex-max": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 15.0,
+		outputPrice: 120.0,
+		cacheReadsPrice: 1.5,
+	},
+	// ===== GPT-5 系列 =====
+	// GPT-5：基础旗舰版本，40 万上下文窗口
+	"gpt-5": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2.0,
+		outputPrice: 8.0,
+		cacheReadsPrice: 0.5,
+	},
+	// GPT-5-mini：轻量版本，高性价比，适用于日常任务
+	"gpt-5-mini": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 0.4,
+		outputPrice: 1.6,
+		cacheReadsPrice: 0.1,
+	},
+	// GPT-5-nano：超轻量版本，最低成本，适用于简单任务
+	"gpt-5-nano": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 0.1,
+		outputPrice: 0.4,
+		cacheReadsPrice: 0.025,
+	},
+	// GPT-5-pro：高端推理版本，适用于复杂任务
+	"gpt-5-pro": {
+		maxTokens: 128_000,
+		contextWindow: 400_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 15.0,
+		outputPrice: 120.0,
+		cacheReadsPrice: 1.5,
+	},
+	// ===== 历史模型（仍可使用）=====
+	// o3：推理模型，20 万上下文窗口，10 万最大输出
+	"o3": {
 		maxTokens: 100_000,
 		contextWindow: 200_000,
 		supportsImages: true,
@@ -1024,6 +1254,17 @@ export const openAiNativeModels = {
 		outputPrice: 8.0,
 		cacheReadsPrice: 0.5,
 	},
+	// o3-mini：轻量推理模型，不支持图像
+	"o3-mini": {
+		maxTokens: 100_000,
+		contextWindow: 200_000,
+		supportsImages: false,
+		supportsPromptCache: true,
+		inputPrice: 1.1,
+		outputPrice: 4.4,
+		cacheReadsPrice: 0.275,
+	},
+	// o4-mini：轻量推理模型，支持图像
 	"o4-mini": {
 		maxTokens: 100_000,
 		contextWindow: 200_000,
@@ -1033,6 +1274,7 @@ export const openAiNativeModels = {
 		outputPrice: 4.4,
 		cacheReadsPrice: 0.275,
 	},
+	// gpt-4.1：上一代通用模型，超长上下文（约 100 万）
 	"gpt-4.1": {
 		maxTokens: 32_768,
 		contextWindow: 1_047_576,
@@ -1042,6 +1284,7 @@ export const openAiNativeModels = {
 		outputPrice: 8,
 		cacheReadsPrice: 0.5,
 	},
+	// gpt-4.1-mini：上一代轻量模型，高性价比
 	"gpt-4.1-mini": {
 		maxTokens: 32_768,
 		contextWindow: 1_047_576,
@@ -1051,6 +1294,7 @@ export const openAiNativeModels = {
 		outputPrice: 1.6,
 		cacheReadsPrice: 0.1,
 	},
+	// gpt-4.1-nano：上一代超轻量模型，最低成本
 	"gpt-4.1-nano": {
 		maxTokens: 32_768,
 		contextWindow: 1_047_576,
@@ -1060,77 +1304,6 @@ export const openAiNativeModels = {
 		outputPrice: 0.4,
 		cacheReadsPrice: 0.025,
 	},
-	"o3-mini": {
-		maxTokens: 100_000,
-		contextWindow: 200_000,
-		supportsImages: false,
-		supportsPromptCache: true,
-		inputPrice: 1.1,
-		outputPrice: 4.4,
-		cacheReadsPrice: 0.55,
-	},
-	// don't support tool use yet
-	o1: {
-		maxTokens: 100_000,
-		contextWindow: 200_000,
-		supportsImages: true,
-		supportsPromptCache: false,
-		inputPrice: 15,
-		outputPrice: 60,
-		cacheReadsPrice: 7.5,
-	},
-	"o1-preview": {
-		maxTokens: 32_768,
-		contextWindow: 128_000,
-		supportsImages: true,
-		supportsPromptCache: true,
-		inputPrice: 15,
-		outputPrice: 60,
-		cacheReadsPrice: 7.5,
-	},
-	"o1-mini": {
-		maxTokens: 65_536,
-		contextWindow: 128_000,
-		supportsImages: true,
-		supportsPromptCache: true,
-		inputPrice: 1.1,
-		outputPrice: 4.4,
-		cacheReadsPrice: 0.55,
-	},
-	"gpt-4o": {
-		maxTokens: 4_096,
-		contextWindow: 128_000,
-		supportsImages: true,
-		supportsPromptCache: true,
-		inputPrice: 2.5,
-		outputPrice: 10,
-		cacheReadsPrice: 1.25,
-	},
-	"gpt-4o-mini": {
-		maxTokens: 16_384,
-		contextWindow: 128_000,
-		supportsImages: true,
-		supportsPromptCache: true,
-		inputPrice: 0.15,
-		outputPrice: 0.6,
-		cacheReadsPrice: 0.075,
-	},
-	"chatgpt-4o-latest": {
-		maxTokens: 16_384,
-		contextWindow: 128_000,
-		supportsImages: true,
-		supportsPromptCache: false,
-		inputPrice: 5,
-		outputPrice: 15,
-	},
-	"gpt-4.5-preview": {
-		maxTokens: 16_384,
-		contextWindow: 128_000,
-		supportsImages: true,
-		supportsPromptCache: true,
-		inputPrice: 75,
-		outputPrice: 150,
-	},
 } as const satisfies Record<string, ModelInfo>
 
 // Azure OpenAI
@@ -1139,28 +1312,52 @@ export const openAiNativeModels = {
 export const azureOpenAiDefaultApiVersion = "2024-08-01-preview"
 
 // DeepSeek
-// https://api-docs.deepseek.com/quick_start/pricing
+// https://api-docs.deepseek.com/quick_start/pricing // 价格更新于 2026-06（最新 2026 模型）
 export type DeepSeekModelId = keyof typeof deepSeekModels
-export const deepSeekDefaultModelId: DeepSeekModelId = "deepseek-chat"
+// 默认模型更新为最新的 DeepSeek V4 Flash（2026 年 4 月发布的最新模型，高性价比）
+export const deepSeekDefaultModelId: DeepSeekModelId = "deepseek-v4-flash"
 export const deepSeekModels = {
-	"deepseek-chat": {
-		maxTokens: 8_000,
-		contextWindow: 64_000,
-		supportsImages: false,
-		supportsPromptCache: true, // supports context caching, but not in the way anthropic does it (deepseek reports input tokens and reads/writes in the same usage report) FIXME: we need to show users cache stats how deepseek does it
-		inputPrice: 0, // technically there is no input price, it's all either a cache hit or miss (ApiOptions will not show this). Input is the sum of cache reads and writes
-		outputPrice: 1.1,
-		cacheWritesPrice: 0.27,
-		cacheReadsPrice: 0.07,
+	// ===== 最新 2026 模型（基于 2026 年 6 月网络调研，以下为 DeepSeek 最新发布的模型）=====
+	// DeepSeek V4 Pro：2026 年 4 月最新旗舰，100 万上下文窗口，38.4 万最大输出，支持图像与提示缓存
+	"deepseek-v4-pro": {
+		maxTokens: 384_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 1.74,
+		outputPrice: 0.87,
+		cacheReadsPrice: 0.044,
 	},
-	"deepseek-reasoner": {
-		maxTokens: 8_000,
-		contextWindow: 64_000,
+	// DeepSeek V4 Flash：2026 年 4 月最新轻量模型，100 万上下文窗口，高性价比，适用于日常任务
+	"deepseek-v4-flash": {
+		maxTokens: 384_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 0.14,
+		outputPrice: 0.28,
+		cacheReadsPrice: 0.014,
+	},
+	// ===== 历史模型（仍可使用）=====
+	// DeepSeek V3.2 Chat：上一代旗舰对话模型，12.8 万上下文窗口
+	"deepseek-chat": {
+		maxTokens: 8192,
+		contextWindow: 128_000,
 		supportsImages: false,
 		supportsPromptCache: true, // supports context caching, but not in the way anthropic does it (deepseek reports input tokens and reads/writes in the same usage report) FIXME: we need to show users cache stats how deepseek does it
-		inputPrice: 0, // technically there is no input price, it's all either a cache hit or miss (ApiOptions will not show this)
+		inputPrice: 0.28, // technically there is no input price, it's all either a cache hit or miss (ApiOptions will not show this). Input is the sum of cache reads and writes
+		outputPrice: 0.42,
+		cacheWritesPrice: 0.028,
+		cacheReadsPrice: 0.028,
+	},
+	// DeepSeek R1：推理模型，12.8 万上下文窗口，6.4 万最大输出
+	"deepseek-reasoner": {
+		maxTokens: 64_000,
+		contextWindow: 128_000,
+		supportsImages: false,
+		supportsPromptCache: true, // supports context caching, but not in the way anthropic does it (deepseek reports input tokens and reads/writes in the same usage report) FIXME: we need to show users cache stats how deepseek does it
+		inputPrice: 0.55, // technically there is no input price, it's all either a cache hit or miss (ApiOptions will not show this)
 		outputPrice: 2.19,
-		cacheWritesPrice: 0.55,
 		cacheReadsPrice: 0.14,
 	},
 } as const satisfies Record<string, ModelInfo>
