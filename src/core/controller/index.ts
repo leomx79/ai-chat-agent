@@ -143,7 +143,8 @@ export class Controller {
 
 	/**
 	 * 从 globalState 异步恢复讨论状态和消息
-	 * 在构造函数中调用，恢复后推送 state 到前端
+	 * 仅恢复到内存，不自动推送到前端（避免旧讨论消息污染 ChatView 渲染）
+	 * 前端通过用户手动操作时再获取讨论状态
 	 */
 	private async restoreDiscussionState() {
 		try {
@@ -155,10 +156,7 @@ export class Controller {
 			if (messages && Array.isArray(messages)) {
 				this.discussionMessages = messages as ClineMessage[]
 			}
-			// 如果有恢复的讨论数据，推送到前端
-			if (this.discussionState || this.discussionMessages.length > 0) {
-				this.postStateToWebview()
-			}
+			// 不自动推送 — 旧讨论消息混入 clineMessages 会导致 ChatView 崩溃
 		} catch (error) {
 			console.error("[Discussion] Failed to restore discussion state:", error)
 		}
@@ -1046,8 +1044,9 @@ export class Controller {
 			checkpointTrackerErrorMessage: this.task?.taskState.checkpointTrackerErrorMessage,
 			clineMessages: [
 				...(this.task?.messageStateHandler.getClineMessages() || []),
-				// 合并讨论消息（带 participantId 标记），按时间戳排序
-				...this.discussionMessages,
+				// 仅在讨论活跃时合并讨论消息，避免旧讨论消息污染普通任务渲染
+				// ChatView 假设 messages[0] 是 task 消息，旧讨论消息会导致渲染崩溃
+				...(this.discussionManager ? this.discussionMessages : []),
 			].sort((a, b) => a.ts - b.ts),
 			taskHistory: (taskHistory || [])
 				.filter((item) => item.ts && item.task)
@@ -1092,8 +1091,11 @@ export class Controller {
 		this.discussionMessages = []
 		this.discussionState = undefined
 		this.discussionStreamItems = []
-		this.discussionManager?.abort()
-		this.discussionManager = undefined
+		// await abort — abort 内部会触发 onClineMessage，不 await 会导致竞态
+		if (this.discussionManager) {
+			await this.discussionManager.abort()
+			this.discussionManager = undefined
+		}
 		await updateGlobalState(this.context, "discussionState", undefined)
 		await updateGlobalState(this.context, "discussionMessages", undefined)
 	}
