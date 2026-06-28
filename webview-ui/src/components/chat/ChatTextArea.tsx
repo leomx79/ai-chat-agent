@@ -1,4 +1,4 @@
-﻿﻿﻿import { MAX_IMAGES_AND_FILES_PER_MESSAGE } from "@/components/chat/ChatView"
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { MAX_IMAGES_AND_FILES_PER_MESSAGE } from "@/components/chat/ChatView"
 import ContextMenu from "@/components/chat/ContextMenu"
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
@@ -45,6 +45,129 @@ import { useClickAway, useEvent, useWindowSize } from "react-use"
 import styled from "styled-components"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
 import ServersToggleModal from "./ServersToggleModal"
+// 多AI讨论：讨论配置与参与者类型定义
+import type { DiscussionConfig, DiscussionParticipant } from "@shared/discussion-types"
+// 从 @shared/api 导入各提供商的模型列表，参与者模型ID下拉框通过 Object.keys() 动态获取
+// 当 api.ts 中模型列表更新时，下拉选项自动同步，无需手动维护
+import {
+	anthropicModels,
+	openAiNativeModels,
+	deepSeekModels,
+	geminiModels,
+	mistralModels,
+	xaiModels,
+	internationalQwenModels,
+	doubaoModels,
+	sambanovaModels,
+	cerebrasModels,
+} from "@shared/api"
+
+// ==================== 多AI讨论配置：模块级常量 ====================
+
+/** 角色预设列表，定义讨论参与者可选的角色身份 */
+const DISCUSSION_ROLE_PRESETS = [
+	{ value: "architect", label: "架构师" },
+	{ value: "reviewer", label: "代码审查员" },
+	{ value: "implementer", label: "实现工程师" },
+	{ value: "product", label: "产品顾问" },
+	{ value: "performance", label: "性能优化师" },
+	{ value: "tester", label: "测试工程师" },
+]
+
+/** 提供商下拉选项，键名与 DISCUSSION_PROVIDER_MODELS 对应 */
+const DISCUSSION_PROVIDER_OPTIONS = [
+	{ value: "anthropic", label: "Anthropic" },
+	{ value: "openai-native", label: "OpenAI" },
+	{ value: "deepseek", label: "DeepSeek" },
+	{ value: "gemini", label: "Google Gemini" },
+	{ value: "mistral", label: "Mistral" },
+	{ value: "xai", label: "xAI" },
+	{ value: "qwen", label: "Alibaba Qwen" },
+	{ value: "doubao", label: "Bytedance Doubao" },
+	{ value: "sambanova", label: "SambaNova" },
+	{ value: "cerebras", label: "Cerebras" },
+	{ value: "openrouter", label: "OpenRouter" },
+	{ value: "openai", label: "OpenAI Compatible" },
+	{ value: "together", label: "Together" },
+	{ value: "requesty", label: "Requesty" },
+	{ value: "ollama", label: "Ollama" },
+	{ value: "lmstudio", label: "LM Studio" },
+	{ value: "litellm", label: "LiteLLM" },
+	{ value: "vscode-lm", label: "VS Code LM API" },
+	{ value: "cline", label: "Cline" },
+]
+
+/**
+ * 各提供商对应的可选模型列表
+ * 直接从 @shared/api 的模型定义中通过 Object.keys() 动态读取
+ * 当 api.ts 中的模型列表更新时，这里会自动同步，无需手动维护
+ */
+const DISCUSSION_PROVIDER_MODELS: Record<string, string[]> = {
+	anthropic: Object.keys(anthropicModels),
+	"openai-native": Object.keys(openAiNativeModels),
+	deepseek: Object.keys(deepSeekModels),
+	gemini: Object.keys(geminiModels),
+	mistral: Object.keys(mistralModels),
+	xai: Object.keys(xaiModels),
+	qwen: Object.keys(internationalQwenModels),
+	doubao: Object.keys(doubaoModels),
+	sambanova: Object.keys(sambanovaModels),
+	cerebras: Object.keys(cerebrasModels),
+	// 以下提供商的模型列表需用户手动输入或从API动态获取
+	openrouter: [],
+	openai: [],
+	together: [],
+	requesty: [],
+	ollama: [],
+	lmstudio: [],
+	litellm: [],
+	"vscode-lm": [],
+	cline: [],
+}
+
+/** 参与者可选颜色列表，用于在讨论消息中区分不同参与者 */
+const DISCUSSION_PARTICIPANT_COLORS = [
+	"#f87171",
+	"#fbbf24",
+	"#34d399",
+	"#60a5fa",
+	"#a78bfa",
+	"#f472b6",
+	"#22d3ee",
+	"#fb923c",
+]
+
+/** 讨论模式选项：圆桌会议 / 自由对话 */
+const DISCUSSION_MODE_OPTIONS = [
+	{ value: "roundtable", label: "圆桌会议" },
+	{ value: "chat", label: "自由对话" },
+]
+
+/**
+ * 创建默认的两个讨论参与者
+ * 参与者1：架构师角色，Anthropic，claude-sonnet-5
+ * 参与者2：代码审查员角色，DeepSeek，deepseek-v4-flash
+ */
+const createDefaultDiscussionParticipants = (): DiscussionParticipant[] => [
+	{
+		id: `p-${Date.now()}-1`,
+		name: "架构师",
+		role: "architect",
+		color: DISCUSSION_PARTICIPANT_COLORS[0],
+		providerId: "anthropic",
+		modelId: "claude-sonnet-5",
+		apiKey: "",
+	},
+	{
+		id: `p-${Date.now()}-2`,
+		name: "审查员",
+		role: "reviewer",
+		color: DISCUSSION_PARTICIPANT_COLORS[1],
+		providerId: "deepseek",
+		modelId: "deepseek-v4-flash",
+		apiKey: "",
+	},
+]
 
 const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => {
 	return new Promise((resolve, reject) => {
@@ -252,6 +375,30 @@ const ModelButtonContent = styled.div`
 	white-space: nowrap;
 `
 
+// 多AI讨论配置弹窗：半透明遮罩层，覆盖整个视口
+const DiscussionModalOverlay = styled.div`
+	position: fixed;
+	inset: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 2000;
+`
+
+// 多AI讨论配置弹窗：主体内容容器
+const DiscussionModalContent = styled.div`
+	background-color: var(--vscode-editor-background);
+	border: 1px solid var(--vscode-editorGroup-border);
+	border-radius: 6px;
+	padding: 16px;
+	width: 90%;
+	max-width: 640px;
+	max-height: 85vh;
+	overflow-y: auto;
+	color: var(--vscode-foreground);
+`
+
 const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 	(
 		{
@@ -280,7 +427,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			platform,
 			localWorkflowToggles,
 			globalWorkflowToggles,
-			navigateToDiscussion,
+			// discussionState 用于判断当前是否有讨论正在进行，决定按钮是打开配置弹窗还是停止讨论
+			discussionState,
 		} = useExtensionState()
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
@@ -322,6 +470,108 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const [fileSearchResults, setFileSearchResults] = useState<SearchResult[]>([])
 		const [searchLoading, setSearchLoading] = useState(false)
 		const [, metaKeyChar] = useMetaKeyDetection(platform)
+
+		// ==================== 多AI讨论配置弹窗：状态与处理函数 ====================
+		// 控制讨论配置弹窗的显示/隐藏
+		const [showDiscussionModal, setShowDiscussionModal] = useState(false)
+		// 讨论主题
+		const [discussionTopic, setDiscussionTopic] = useState("")
+		// 讨论模式：圆桌会议(roundtable) 或 自由对话(chat)
+		const [discussionMode, setDiscussionMode] = useState<"roundtable" | "chat">("roundtable")
+		// 最大讨论轮次，默认3轮
+		const [discussionMaxRounds, setDiscussionMaxRounds] = useState(3)
+		// 参与者列表，默认包含架构师(Anthropic)和审查员(DeepSeek)两个参与者
+		const [discussionParticipants, setDiscussionParticipants] = useState<DiscussionParticipant[]>(() =>
+			createDefaultDiscussionParticipants(),
+		)
+
+		/**
+		 * 判断当前是否有讨论正在进行
+		 * 当 discussionState 存在且状态为讨论中/共识/方案/审查时，视为进行中
+		 */
+		const isDiscussionInProgress =
+			!!discussionState &&
+			["discussing", "consensus", "proposing", "reviewing"].includes(discussionState.status)
+
+		/**
+		 * 讨论按钮点击处理：
+		 * - 若讨论进行中，则发送停止讨论消息
+		 * - 否则打开讨论配置弹窗
+		 */
+		const handleDiscussionButtonClick = () => {
+			if (isDiscussionInProgress) {
+				// 停止当前讨论
+				vscode.postMessage({
+					type: "discussion",
+					discussionAction: "stop",
+				})
+			} else {
+				// 打开讨论配置弹窗
+				setShowDiscussionModal(true)
+			}
+		}
+
+		/**
+		 * 添加一个新的参与者，默认使用下一个可用颜色
+		 */
+		const handleAddDiscussionParticipant = () => {
+			setDiscussionParticipants((prev) => [
+				...prev,
+				{
+					id: `p-${Date.now()}-${prev.length + 1}`,
+					name: `参与者${prev.length + 1}`,
+					role: "architect",
+					color: DISCUSSION_PARTICIPANT_COLORS[prev.length % DISCUSSION_PARTICIPANT_COLORS.length],
+					providerId: "anthropic",
+					modelId: "claude-sonnet-5",
+					apiKey: "",
+				},
+			])
+		}
+
+		/**
+		 * 删除指定参与者
+		 * @param id 要删除的参与者ID
+		 */
+		const handleRemoveDiscussionParticipant = (id: string) => {
+			setDiscussionParticipants((prev) => prev.filter((p) => p.id !== id))
+		}
+
+		/**
+		 * 更新指定参与者的某个字段
+		 * @param id 参与者ID
+		 * @param field 要更新的字段名
+		 * @param value 新值
+		 */
+		const handleUpdateDiscussionParticipant = (
+			id: string,
+			field: keyof DiscussionParticipant,
+			value: string,
+		) => {
+			setDiscussionParticipants((prev) =>
+				prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
+			)
+		}
+
+		/**
+		 * 开始讨论：将当前配置通过 vscode.postMessage 发送给扩展端
+		 * 发送完成后关闭弹窗
+		 */
+		const handleStartDiscussion = () => {
+			const config: DiscussionConfig = {
+				topic: discussionTopic.trim() || "未命名讨论",
+				mode: discussionMode,
+				maxRounds: discussionMaxRounds,
+				participants: discussionParticipants,
+			}
+			vscode.postMessage({
+				type: "discussion",
+				discussionAction: "create",
+				discussionConfig: config,
+			})
+			// 关闭弹窗
+			setShowDiscussionModal(false)
+		}
 
 		// Add a ref to track previous menu state
 		const prevShowModelSelector = useRef(showModelSelector)
@@ -1701,16 +1951,16 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</VSCodeButton>
 							</Tooltip>
 							<ServersToggleModal />
-						<Tooltip tipText="多AI讨论">
+						<Tooltip tipText={isDiscussionInProgress ? "停止讨论" : "多AI讨论"}>
 						<VSCodeButton
 							data-testid="discussion-button"
 							appearance="icon"
-							aria-label="多AI讨论"
-								onClick={() => navigateToDiscussion?.()}
+							aria-label={isDiscussionInProgress ? "停止讨论" : "多AI讨论"}
+								onClick={handleDiscussionButtonClick}
 								style={{ padding: "0px 0px", height: "20px" }}>
 								<ButtonContainer>
 									<span
-										className="codicon codicon-organization flex items-center"
+										className={`codicon ${isDiscussionInProgress ? "codicon-debug-stop" : "codicon-organization"} flex items-center`}
 										style={{ fontSize: "14px", marginBottom: -3 }}
 									/>
 								</ButtonContainer>
@@ -1775,6 +2025,287 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						</SwitchContainer>
 					</Tooltip>
 				</ControlsContainer>
+
+				{/* ==================== 多AI讨论配置弹窗 ==================== */}
+				{showDiscussionModal && (
+					<DiscussionModalOverlay
+						onClick={(e) => {
+							// 点击遮罩层空白处关闭弹窗
+							if (e.target === e.currentTarget) {
+								setShowDiscussionModal(false)
+							}
+						}}>
+						<DiscussionModalContent onClick={(e) => e.stopPropagation()}>
+							{/* 弹窗标题栏 */}
+							<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+								<h3 style={{ margin: 0, fontSize: 14 }}>多AI讨论配置</h3>
+								<VSCodeButton
+									appearance="icon"
+									aria-label="关闭"
+									onClick={() => setShowDiscussionModal(false)}>
+									<span className="codicon codicon-close" style={{ fontSize: 14 }} />
+								</VSCodeButton>
+							</div>
+
+							{/* 讨论主题输入框 */}
+							<div style={{ marginBottom: 10 }}>
+								<label style={{ display: "block", fontSize: 11, marginBottom: 4, color: "var(--vscode-descriptionForeground)" }}>
+									讨论主题
+								</label>
+								<input
+									type="text"
+									value={discussionTopic}
+									onChange={(e) => setDiscussionTopic(e.target.value)}
+									placeholder="输入讨论主题..."
+									style={{
+										width: "100%",
+										boxSizing: "border-box",
+										padding: "6px 8px",
+										backgroundColor: "var(--vscode-input-background)",
+										color: "var(--vscode-input-foreground)",
+										border: "1px solid var(--vscode-input-border)",
+										borderRadius: 2,
+										outline: "none",
+										fontSize: 12,
+									}}
+								/>
+							</div>
+
+							{/* 模式选择与最大轮次并排 */}
+							<div style={{ display: "flex", gap: 12, marginBottom: 10 }}>
+								<div style={{ flex: 1 }}>
+									<label style={{ display: "block", fontSize: 11, marginBottom: 4, color: "var(--vscode-descriptionForeground)" }}>
+										讨论模式
+									</label>
+									<select
+										value={discussionMode}
+										onChange={(e) => setDiscussionMode(e.target.value as "roundtable" | "chat")}
+										style={{
+											width: "100%",
+											boxSizing: "border-box",
+											padding: "6px 8px",
+											backgroundColor: "var(--vscode-dropdown-background)",
+											color: "var(--vscode-dropdown-foreground)",
+											border: "1px solid var(--vscode-dropdown-border)",
+											borderRadius: 2,
+											fontSize: 12,
+										}}>
+										{DISCUSSION_MODE_OPTIONS.map((opt) => (
+											<option key={opt.value} value={opt.value}>
+												{opt.label}
+											</option>
+										))}
+									</select>
+								</div>
+								<div style={{ width: 100 }}>
+									<label style={{ display: "block", fontSize: 11, marginBottom: 4, color: "var(--vscode-descriptionForeground)" }}>
+										最大轮次
+									</label>
+									<input
+										type="number"
+										min={1}
+										max={10}
+										value={discussionMaxRounds}
+										onChange={(e) => setDiscussionMaxRounds(Math.max(1, Number(e.target.value) || 1))}
+										style={{
+											width: "100%",
+											boxSizing: "border-box",
+											padding: "6px 8px",
+											backgroundColor: "var(--vscode-input-background)",
+											color: "var(--vscode-input-foreground)",
+											border: "1px solid var(--vscode-input-border)",
+											borderRadius: 2,
+											outline: "none",
+											fontSize: 12,
+										}}
+									/>
+								</div>
+							</div>
+
+							{/* 参与者列表标题与添加按钮 */}
+							<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+								<label style={{ fontSize: 11, color: "var(--vscode-descriptionForeground)" }}>
+									参与者列表（{discussionParticipants.length}）
+								</label>
+								<VSCodeButton appearance="icon" aria-label="添加参与者" onClick={handleAddDiscussionParticipant}>
+									<span className="codicon codicon-add" style={{ fontSize: 12 }} />
+								</VSCodeButton>
+							</div>
+
+							{/* 参与者列表，每个参与者可配置名称、角色、颜色、提供商、模型ID、API密钥 */}
+							<div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+								{discussionParticipants.map((p) => {
+									// 当前参与者可选的模型列表（根据提供商动态获取）
+									const modelOptions = DISCUSSION_PROVIDER_MODELS[p.providerId || ""] || []
+									return (
+										<div
+											key={p.id}
+											style={{
+												border: "1px solid var(--vscode-editorGroup-border)",
+												borderRadius: 4,
+												padding: 8,
+												backgroundColor: "var(--vscode-editor-background)",
+											}}>
+											{/* 参与者第一行：颜色 + 名称 + 角色预设 + 删除按钮 */}
+											<div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 6 }}>
+												{/* 颜色选择器 */}
+												<input
+													type="color"
+													value={p.color}
+													onChange={(e) => handleUpdateDiscussionParticipant(p.id, "color", e.target.value)}
+													style={{ width: 24, height: 24, padding: 0, border: "none", background: "none", cursor: "pointer" }}
+												/>
+												{/* 名称输入 */}
+												<input
+													type="text"
+													value={p.name}
+													onChange={(e) => handleUpdateDiscussionParticipant(p.id, "name", e.target.value)}
+													placeholder="名称"
+													style={{
+														flex: 1,
+														minWidth: 0,
+														padding: "4px 6px",
+														backgroundColor: "var(--vscode-input-background)",
+														color: "var(--vscode-input-foreground)",
+														border: "1px solid var(--vscode-input-border)",
+														borderRadius: 2,
+														outline: "none",
+														fontSize: 12,
+													}}
+												/>
+												{/* 角色预设下拉 */}
+												<select
+													value={p.role}
+													onChange={(e) => handleUpdateDiscussionParticipant(p.id, "role", e.target.value)}
+													style={{
+														padding: "4px 6px",
+														backgroundColor: "var(--vscode-dropdown-background)",
+														color: "var(--vscode-dropdown-foreground)",
+														border: "1px solid var(--vscode-dropdown-border)",
+														borderRadius: 2,
+														fontSize: 12,
+													}}>
+													{DISCUSSION_ROLE_PRESETS.map((r) => (
+														<option key={r.value} value={r.value}>
+															{r.label}
+														</option>
+													))}
+												</select>
+												{/* 删除参与者按钮 */}
+												<VSCodeButton
+													appearance="icon"
+													aria-label="删除参与者"
+													onClick={() => handleRemoveDiscussionParticipant(p.id)}>
+													<span className="codicon codicon-trash" style={{ fontSize: 12 }} />
+												</VSCodeButton>
+											</div>
+											{/* 参与者第二行：提供商 + 模型ID + API密钥 */}
+											<div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+												{/* 提供商下拉，切换时自动重置模型ID */}
+												<select
+													value={p.providerId || ""}
+													onChange={(e) => {
+														const newProvider = e.target.value
+														// 切换提供商时，重置模型ID为该提供商的第一个可用模型（若有）
+														const firstModel = DISCUSSION_PROVIDER_MODELS[newProvider]?.[0] || ""
+														setDiscussionParticipants((prev) =>
+															prev.map((item) =>
+																item.id === p.id
+																	? { ...item, providerId: newProvider, modelId: firstModel }
+																	: item,
+															),
+														)
+													}}
+													style={{
+														padding: "4px 6px",
+														backgroundColor: "var(--vscode-dropdown-background)",
+														color: "var(--vscode-dropdown-foreground)",
+														border: "1px solid var(--vscode-dropdown-border)",
+														borderRadius: 2,
+														fontSize: 12,
+													}}>
+													{DISCUSSION_PROVIDER_OPTIONS.map((opt) => (
+														<option key={opt.value} value={opt.value}>
+															{opt.label}
+														</option>
+													))}
+												</select>
+												{/* 模型ID：有预置列表用下拉，否则用文本输入 */}
+												{modelOptions.length > 0 ? (
+													<select
+														value={p.modelId || ""}
+														onChange={(e) => handleUpdateDiscussionParticipant(p.id, "modelId", e.target.value)}
+														style={{
+															flex: 1,
+															minWidth: 0,
+															padding: "4px 6px",
+															backgroundColor: "var(--vscode-dropdown-background)",
+															color: "var(--vscode-dropdown-foreground)",
+															border: "1px solid var(--vscode-dropdown-border)",
+															borderRadius: 2,
+															fontSize: 12,
+														}}>
+														{modelOptions.map((m) => (
+															<option key={m} value={m}>
+																{m}
+															</option>
+														))}
+													</select>
+												) : (
+													<input
+														type="text"
+														value={p.modelId || ""}
+														onChange={(e) => handleUpdateDiscussionParticipant(p.id, "modelId", e.target.value)}
+														placeholder="模型ID"
+														style={{
+															flex: 1,
+															minWidth: 0,
+															padding: "4px 6px",
+															backgroundColor: "var(--vscode-input-background)",
+															color: "var(--vscode-input-foreground)",
+															border: "1px solid var(--vscode-input-border)",
+															borderRadius: 2,
+															outline: "none",
+															fontSize: 12,
+														}}
+													/>
+												)}
+												{/* API密钥输入（密码类型，隐藏明文） */}
+												<input
+													type="password"
+													value={p.apiKey || ""}
+													onChange={(e) => handleUpdateDiscussionParticipant(p.id, "apiKey", e.target.value)}
+													placeholder="API密钥"
+													style={{
+														flex: 1,
+														minWidth: 0,
+														padding: "4px 6px",
+														backgroundColor: "var(--vscode-input-background)",
+														color: "var(--vscode-input-foreground)",
+														border: "1px solid var(--vscode-input-border)",
+														borderRadius: 2,
+														outline: "none",
+														fontSize: 12,
+													}}
+												/>
+											</div>
+										</div>
+									)
+								})}
+							</div>
+
+							{/* 底部操作区：开始讨论按钮 */}
+							<div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+								<VSCodeButton
+									appearance="primary"
+									onClick={handleStartDiscussion}
+									disabled={discussionParticipants.length === 0}>
+									开始讨论
+								</VSCodeButton>
+							</div>
+						</DiscussionModalContent>
+					</DiscussionModalOverlay>
+				)}
 			</div>
 		)
 	},
