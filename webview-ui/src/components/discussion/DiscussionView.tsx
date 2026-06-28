@@ -58,6 +58,95 @@ const PROVIDER_OPTIONS = [
 	{ value: "cline", label: "Cline" },
 ]
 
+/**
+ * 各提供商对应的可选模型列表
+ * 键名与 PROVIDER_OPTIONS 的 value 一致
+ * 当用户选择提供商后，模型ID下拉框会自动展示对应的模型列表
+ * "__custom__" 为特殊值，表示用户想手动输入自定义模型ID
+ */
+const PROVIDER_MODELS: Record<string, string[]> = {
+	anthropic: [
+		"claude-sonnet-4-20250514",
+		"claude-opus-4-20250514",
+		"claude-3-7-sonnet-20250219",
+		"claude-3-5-sonnet-20241022",
+		"claude-3-5-haiku-20241022",
+		"claude-3-opus-20240229",
+		"claude-3-haiku-20240307",
+	],
+	"openai-native": [
+		"gpt-4.1",
+		"gpt-4.1-mini",
+		"gpt-4.1-nano",
+		"gpt-4o",
+		"gpt-4o-mini",
+		"o3",
+		"o3-mini",
+		"o4-mini",
+	],
+	deepseek: [
+		"deepseek-chat",
+		"deepseek-reasoner",
+	],
+	gemini: [
+		"gemini-2.5-pro",
+		"gemini-2.5-flash",
+		"gemini-2.0-flash",
+		"gemini-2.0-flash-lite",
+		"gemini-1.5-pro",
+		"gemini-1.5-flash",
+	],
+	mistral: [
+		"devstral-small-2505",
+		"mistral-large-latest",
+		"mistral-small-latest",
+		"codestral-latest",
+		"mistral-nemo",
+	],
+	xai: [
+		"grok-3",
+		"grok-3-mini",
+		"grok-2",
+		"grok-2-vision",
+	],
+	qwen: [
+		"qwen-coder-plus-latest",
+		"qwen-plus-latest",
+		"qwen-turbo-latest",
+		"qwen-max-latest",
+	],
+	doubao: [
+		"doubao-1-5-pro-256k-250115",
+		"doubao-1-5-pro-32k-250115",
+		"doubao-1-5-lite-32k-250115",
+	],
+	sambanova: [
+		"Meta-Llama-3.3-70B-Instruct",
+		"Meta-Llama-3.1-405B-Instruct",
+		"Meta-Llama-3.1-8B-Instruct",
+		"Qwen2.5-72B-Instruct",
+	],
+	cerebras: [
+		"llama3.1-8b",
+		"llama3.1-70b",
+		"llama3.3-70b",
+		"qwen-2.5-coder-32b",
+	],
+	// 以下提供商的模型列表需要用户自行输入或从API获取
+	openrouter: [],
+	openai: [],
+	together: [],
+	requesty: [],
+	ollama: [],
+	lmstudio: [],
+	litellm: [],
+	"vscode-lm": [],
+	cline: [],
+}
+
+/** 特殊值：表示用户选择手动输入自定义模型ID */
+const CUSTOM_MODEL_VALUE = "__custom__"
+
 const PARTICIPANT_COLORS = [
 	"#f87171",
 	"#fbbf24",
@@ -494,18 +583,56 @@ const ParticipantRow = ({
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>
 						模型ID
 					</label>
-					<input
-						type="text"
-						value={participant.modelId || ""}
-						onChange={(e) => update("modelId", e.target.value)}
-						placeholder="例如 claude-sonnet-4-20250514"
-						className="w-full text-sm px-2 py-1 rounded border"
-						style={{
-							backgroundColor: "var(--vscode-input-background)",
-							color: "var(--vscode-input-foreground)",
-							borderColor: "var(--vscode-input-border)",
-						}}
-					/>
+					{(() => {
+						// 获取当前提供商对应的可选模型列表
+						const models: string[] = PROVIDER_MODELS[participant.providerId || ""] || []
+						// 判断当前 modelId 是否在预设列表中
+						const isCustom = participant.modelId && !models.includes(participant.modelId)
+						// 如果该提供商没有预设模型列表，或当前已选择自定义，则直接显示文本输入框
+						if (models.length === 0 || isCustom) {
+							return (
+								<input
+									type="text"
+									value={participant.modelId || ""}
+									onChange={(e) => update("modelId", e.target.value)}
+									placeholder="例如 claude-sonnet-4-20250514"
+									className="w-full text-sm px-2 py-1 rounded border"
+									style={{
+										backgroundColor: "var(--vscode-input-background)",
+										color: "var(--vscode-input-foreground)",
+										borderColor: "var(--vscode-input-border)",
+									}}
+								/>
+							)
+						}
+						// 否则显示下拉选择框，并提供"自定义..."选项
+						return (
+							<>
+								<select
+									value={participant.modelId || ""}
+									onChange={(e) => {
+										// 选择"自定义..."时清空 modelId，触发上方的文本输入框显示
+										if (e.target.value === CUSTOM_MODEL_VALUE) {
+											update("modelId", "")
+										} else {
+											update("modelId", e.target.value)
+										}
+									}}
+									className="w-full text-sm px-2 py-1 rounded border"
+									style={{
+										backgroundColor: "var(--vscode-input-background)",
+										color: "var(--vscode-input-foreground)",
+										borderColor: "var(--vscode-input-border)",
+									}}>
+									<option value="" disabled>选择模型...</option>
+									{models.map((m: string) => (
+										<option key={m} value={m}>{m}</option>
+									))}
+									<option value={CUSTOM_MODEL_VALUE}>自定义...</option>
+								</select>
+							</>
+						)
+					})()}
 				</div>
 				<div>
 					<label className="text-xs block mb-0.5" style={{ color: "var(--vscode-descriptionForeground)" }}>

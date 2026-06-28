@@ -1,4 +1,4 @@
-﻿import { useRef, useState, useMemo } from "react"
+﻿﻿import { useRef, useState, useMemo } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"

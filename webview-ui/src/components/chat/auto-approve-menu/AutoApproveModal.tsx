@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useEffect } from "react"
+﻿﻿import React, { useRef, useState, useEffect } from "react"
 import { useClickAway, useWindowSize } from "react-use"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
