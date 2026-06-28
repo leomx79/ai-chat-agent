@@ -48,6 +48,7 @@ import { handleTaskServiceRequest } from "./task"
 import { BooleanRequest } from "@shared/proto/common"
 import { DiscussionManager } from "../discussion/DiscussionManager"
 import type { DiscussionState, DiscussionStreamItem, DiscussionConfig } from "@shared/discussion-types"
+import type { ClineMessage } from "@shared/ExtensionMessage"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -65,6 +66,12 @@ export class Controller {
 	discussionManager?: DiscussionManager
 	discussionState?: DiscussionState
 	discussionStreamItems: DiscussionStreamItem[] = []
+	/**
+	 * 多AI讨论模式下，参与者发送的 ClineMessage（带 participantId 标记）。
+	 * 讨论启动时清空，讨论消息通过此数组合并到 clineMessages 推送到前端，
+	 * 从而复用 ChatView/ChatRow 全套 UI 渲染。
+	 */
+	discussionMessages: ClineMessage[] = []
 	workspaceTracker: WorkspaceTracker
 	mcpHub: McpHub
 	accountService: ClineAccountService
@@ -254,6 +261,7 @@ export class Controller {
 					this.discussionManager.abort()
 				}
 				this.discussionStreamItems = []
+				this.discussionMessages = [] // 清空讨论消息
 				const config = message.discussionConfig!
 				this.discussionManager = new DiscussionManager(
 					this.context,
@@ -269,6 +277,12 @@ export class Controller {
 					},
 					(error) => {
 						this.postMessageToWebview({ type: "discussion", discussionError: error })
+					},
+					// 新增：参与者消息注入主 clineMessages 流，复用 ChatView/ChatRow
+					(clineMsg) => {
+						this.discussionMessages.push(clineMsg)
+						// 触发 state 更新，前端通过 gRPC subscribeToState 收到合并后的 clineMessages
+						this.postStateToWebview()
 					},
 				)
 				await this.discussionManager.start(config)
@@ -950,7 +964,11 @@ export class Controller {
 			uriScheme: vscode.env.uriScheme,
 			currentTaskItem: this.task?.taskId ? (taskHistory || []).find((item) => item.id === this.task?.taskId) : undefined,
 			checkpointTrackerErrorMessage: this.task?.taskState.checkpointTrackerErrorMessage,
-			clineMessages: this.task?.messageStateHandler.getClineMessages() || [],
+			clineMessages: [
+				...(this.task?.messageStateHandler.getClineMessages() || []),
+				// 合并讨论消息（带 participantId 标记），按时间戳排序
+				...this.discussionMessages,
+			].sort((a, b) => a.ts - b.ts),
 			taskHistory: (taskHistory || [])
 				.filter((item) => item.ts && item.task)
 				.sort((a, b) => b.ts - a.ts)

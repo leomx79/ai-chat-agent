@@ -41,23 +41,6 @@ export class OpenAiNativeHandler implements ApiHandler {
 		const model = this.getModel()
 
 		switch (model.id) {
-			case "o1":
-			case "o1-preview":
-			case "o1-mini": {
-				// o1 doesn't support streaming, non-1 temp, or system prompt
-				const response = await this.client.chat.completions.create({
-					model: model.id,
-					messages: [{ role: "user", content: systemPrompt }, ...convertToOpenAiMessages(messages)],
-				})
-				yield {
-					type: "text",
-					text: response.choices[0]?.message.content || "",
-				}
-
-				yield* this.yieldUsage(model.info, response.usage)
-
-				break
-			}
 			case "o4-mini":
 			case "o3":
 			case "o3-mini": {

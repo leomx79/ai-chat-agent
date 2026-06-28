@@ -6,7 +6,7 @@ import { ApiConfiguration, ApiProvider } from "@shared/api"
 import { AutoApprovalSettings, DEFAULT_AUTO_APPROVAL_SETTINGS } from "@shared/AutoApprovalSettings"
 import { BrowserSettings, DEFAULT_BROWSER_SETTINGS } from "@shared/BrowserSettings"
 import { ChatSettings, DEFAULT_CHAT_SETTINGS } from "@shared/ChatSettings"
-import { ExtensionMessage } from "@shared/ExtensionMessage"
+import { ExtensionMessage, ClineMessage } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
 import { ClineAskResponse } from "@shared/WebviewMessage"
 import WorkspaceTracker from "@integrations/workspace/WorkspaceTracker"
@@ -226,6 +226,11 @@ export class DiscussionManager {
 	private onStateUpdate: (state: DiscussionState) => void
 	private onStreamItem: (item: DiscussionStreamItem) => void
 	private onError: (error: string) => void
+	/**
+	 * 新增回调：把带 participantId 标记的 ClineMessage 传给 controller，
+	 * controller 将其注入主 clineMessages 流，从而复用 ChatView/ChatRow 全套 UI。
+	 */
+	private onClineMessage: (msg: ClineMessage) => void
 
 	// ---- Discussion state ----
 	private state: DiscussionState
@@ -253,6 +258,7 @@ export class DiscussionManager {
 		onStateUpdate: (state: DiscussionState) => void,
 		onStreamItem: (item: DiscussionStreamItem) => void,
 		onError: (error: string) => void,
+		onClineMessage: (msg: ClineMessage) => void,
 	) {
 		this.context = context
 		this.mcpHub = mcpHub
@@ -260,6 +266,7 @@ export class DiscussionManager {
 		this.onStateUpdate = onStateUpdate
 		this.onStreamItem = onStreamItem
 		this.onError = onError
+		this.onClineMessage = onClineMessage
 
 		this.tasks = new Map()
 		this.aborted = false
@@ -841,15 +848,19 @@ Output the proposal in a clear, structured format.`
 	}
 
 	/**
-	 * Scan a Task's clineMessages for new (unseen) text messages and add
-	 * them to the discussion as {@link DiscussionMessage}s.
+	 * 扫描 Task 的 clineMessages，找出新消息（ts > sinceTs），
+	 * 给每条消息打上参与者标记（participantId/Name/Color），
+	 * 然后通过 onClineMessage 回调转发到 controller 的主消息流，
+	 * 这样 ChatView/ChatRow 就能直接渲染参与者消息（含工具调用、命令等）。
 	 *
-	 * @param task           The participant's Task.
-	 * @param participant    The participant configuration.
-	 * @param phase          The current discussion phase.
-	 * @param messageType    The discussion message type to tag.
-	 * @param sinceTs        Only collect messages with ts > this value.
-	 * @param updateTs       Callback to update the caller's lastProcessedTs.
+	 * 同时对 text 消息调用 addDiscussionMessage 维护内部讨论状态。
+	 *
+	 * @param task           参与者的 Task 实例
+	 * @param participant    参与者配置（含 id/name/color）
+	 * @param phase          当前讨论阶段
+	 * @param messageType    讨论消息类型标签
+	 * @param sinceTs        只收集 ts > 此值的消息
+	 * @param updateTs       回调，用于更新调用方的 lastProcessedTs
 	 */
 	private collectNewTextMessages(
 		task: Task,
@@ -863,14 +874,21 @@ Output the proposal in a clear, structured format.`
 		let maxTs = sinceTs
 
 		for (const clineMsg of clineMessages) {
-			if (
-				clineMsg.ts > sinceTs &&
-				clineMsg.type === "say" &&
-				clineMsg.say === "text" &&
-				!clineMsg.partial &&
-				clineMsg.text
-			) {
-				this.addDiscussionMessage(participant, messageType, phase, clineMsg.text)
+			if (clineMsg.ts > sinceTs && !clineMsg.partial) {
+				// 给消息打上参与者标记，转发到主消息流
+				// 创建浅拷贝避免修改原始消息
+				const taggedMsg: ClineMessage = {
+					...clineMsg,
+					participantId: participant.id,
+					participantName: participant.name,
+					participantColor: participant.color,
+				}
+				this.onClineMessage(taggedMsg)
+
+				// 对 text 消息同时维护内部讨论状态
+				if (clineMsg.type === "say" && clineMsg.say === "text" && clineMsg.text) {
+					this.addDiscussionMessage(participant, messageType, phase, clineMsg.text)
+				}
 
 				if (clineMsg.ts > maxTs) {
 					maxTs = clineMsg.ts
@@ -1008,7 +1026,8 @@ Output the proposal in a clear, structured format.`
 	}
 
 	/**
-	 * Add a system-level message (not attributed to any participant).
+	 * 添加系统级消息（不归属于任何参与者）。
+	 * 同时通过 onClineMessage 发送到主消息流，在 ChatView 中以 say:"text" 形式展示。
 	 */
 	private addSystemMessage(content: string): void {
 		const msg: DiscussionMessage = {
@@ -1022,6 +1041,17 @@ Output the proposal in a clear, structured format.`
 		}
 		this.messages.push(msg)
 		this.emitMessageStreamItem(msg)
+
+		// 同步发送到主 clineMessages 流，让 ChatView 也能显示系统消息
+		this.onClineMessage({
+			ts: Date.now(),
+			type: "say",
+			say: "text",
+			text: `[系统] ${content}`,
+			participantId: "system",
+			participantName: "系统",
+			participantColor: "#888888",
+		})
 	}
 
 	// ------------------------------------------------------------------------

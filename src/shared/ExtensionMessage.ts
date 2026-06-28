@@ -113,6 +113,17 @@ export interface ClineMessage {
 	isOperationOutsideWorkspace?: boolean
 	conversationHistoryIndex?: number
 	conversationHistoryDeletedRange?: [number, number] // for when conversation history is truncated for API requests
+	/**
+	 * 多AI讨论模式专用字段：标记此消息来自哪个讨论参与者。
+	 * 当此字段存在时，ChatRow 会显示参与者的头像、名称和颜色，
+	 * 从而在原有 ChatView 中区分不同 AI 的发言。
+	 * 普通模式下此字段为 undefined。
+	 */
+	participantId?: string
+	/** 讨论参与者显示名称（如 "架构师"、"Alice"） */
+	participantName?: string
+	/** 讨论参与者头像颜色（hex 色值，如 "#f87171"） */
+	participantColor?: string
 }
 
 export type ClineAsk =
