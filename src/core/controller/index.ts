@@ -106,6 +106,32 @@ export class Controller {
 		cleanupLegacyCheckpoints(this.context.globalStorageUri.fsPath, this.outputChannel).catch((error) => {
 			console.error("Failed to cleanup legacy checkpoints:", error)
 		})
+
+		// 从 globalState 异步恢复上次讨论的状态和消息，确保重载后不丢失
+		this.restoreDiscussionState()
+	}
+
+	/**
+	 * 从 globalState 异步恢复讨论状态和消息
+	 * 在构造函数中调用，恢复后推送 state 到前端
+	 */
+	private async restoreDiscussionState() {
+		try {
+			const state = await getGlobalState(this.context, "discussionState")
+			if (state) {
+				this.discussionState = state as DiscussionState
+			}
+			const messages = await getGlobalState(this.context, "discussionMessages")
+			if (messages && Array.isArray(messages)) {
+				this.discussionMessages = messages as ClineMessage[]
+			}
+			// 如果有恢复的讨论数据，推送到前端
+			if (this.discussionState || this.discussionMessages.length > 0) {
+				this.postStateToWebview()
+			}
+		} catch (error) {
+			console.error("[Discussion] Failed to restore discussion state:", error)
+		}
 	}
 
 	/*
@@ -262,6 +288,9 @@ export class Controller {
 				}
 				this.discussionStreamItems = []
 				this.discussionMessages = [] // 清空讨论消息
+				// 清空持久化的讨论数据
+				await updateGlobalState(this.context, "discussionState", undefined)
+				await updateGlobalState(this.context, "discussionMessages", undefined)
 				const config = message.discussionConfig!
 				this.discussionManager = new DiscussionManager(
 					this.context,
@@ -269,6 +298,8 @@ export class Controller {
 					this.workspaceTracker,
 					(state) => {
 						this.discussionState = state
+						// 持久化讨论状态到 globalState，重载后可恢复
+						updateGlobalState(this.context, "discussionState", state)
 						this.postMessageToWebview({ type: "discussion", discussionState: state })
 					},
 					(item) => {
@@ -281,6 +312,8 @@ export class Controller {
 					// 新增：参与者消息注入主 clineMessages 流，复用 ChatView/ChatRow
 					(clineMsg) => {
 						this.discussionMessages.push(clineMsg)
+						// 持久化讨论消息到 globalState，重载后可恢复
+						updateGlobalState(this.context, "discussionMessages", this.discussionMessages)
 						// 触发 state 更新，前端通过 gRPC subscribeToState 收到合并后的 clineMessages
 						this.postStateToWebview()
 					},
@@ -298,6 +331,12 @@ export class Controller {
 				if (this.discussionManager) {
 					this.discussionManager.abort()
 				}
+				// 停止后保存最终状态（status 会变为 stopped/completed）
+				if (this.discussionState) {
+					await updateGlobalState(this.context, "discussionState", this.discussionState)
+				}
+				// 保存最终消息
+				await updateGlobalState(this.context, "discussionMessages", this.discussionMessages)
 				break
 			}
 			case "generateProposal": {

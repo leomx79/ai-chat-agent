@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { MAX_IMAGES_AND_FILES_PER_MESSAGE } from "@/components/chat/ChatView"
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { MAX_IMAGES_AND_FILES_PER_MESSAGE } from "@/components/chat/ChatView"
 import ContextMenu from "@/components/chat/ContextMenu"
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
@@ -473,17 +473,69 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 		// ==================== 多AI讨论配置弹窗：状态与处理函数 ====================
 		// 控制讨论配置弹窗的显示/隐藏
-		const [showDiscussionModal, setShowDiscussionModal] = useState(false)
-		// 讨论主题
-		const [discussionTopic, setDiscussionTopic] = useState("")
-		// 讨论模式：圆桌会议(roundtable) 或 自由对话(chat)
-		const [discussionMode, setDiscussionMode] = useState<"roundtable" | "chat">("roundtable")
-		// 最大讨论轮次，默认3轮
-		const [discussionMaxRounds, setDiscussionMaxRounds] = useState(3)
-		// 参与者列表，默认包含架构师(Anthropic)和审查员(DeepSeek)两个参与者
-		const [discussionParticipants, setDiscussionParticipants] = useState<DiscussionParticipant[]>(() =>
-			createDefaultDiscussionParticipants(),
-		)
+	const [showDiscussionModal, setShowDiscussionModal] = useState(false)
+	// 讨论主题 —— 从 localStorage 恢复上次输入的主题
+	const [discussionTopic, setDiscussionTopic] = useState(() => {
+		try {
+			return localStorage.getItem("discussion_topic") || ""
+		} catch {
+			return ""
+		}
+	})
+	// 讨论模式：圆桌会议(roundtable) 或 自由对话(chat) —— 从 localStorage 恢复
+	const [discussionMode, setDiscussionMode] = useState<"roundtable" | "chat">(() => {
+		try {
+			return (localStorage.getItem("discussion_mode") as "roundtable" | "chat") || "roundtable"
+		} catch {
+			return "roundtable"
+		}
+	})
+	// 最大讨论轮次，默认3轮 —— 从 localStorage 恢复
+	const [discussionMaxRounds, setDiscussionMaxRounds] = useState(() => {
+		try {
+			const saved = localStorage.getItem("discussion_maxRounds")
+			return saved ? parseInt(saved, 10) || 3 : 3
+		} catch {
+			return 3
+		}
+	})
+	// 参与者列表 —— 从 localStorage 恢复上次的参与者配置
+	const [discussionParticipants, setDiscussionParticipants] = useState<DiscussionParticipant[]>(() => {
+		try {
+			const saved = localStorage.getItem("discussion_participants")
+			if (saved) {
+				const parsed = JSON.parse(saved) as DiscussionParticipant[]
+				if (Array.isArray(parsed) && parsed.length > 0) {
+					return parsed
+				}
+			}
+		} catch {
+			// ignore parse errors
+		}
+		return createDefaultDiscussionParticipants()
+	})
+
+	// 当讨论配置发生变化时，自动保存到 localStorage，确保重载后恢复
+	useEffect(() => {
+		try {
+			localStorage.setItem("discussion_topic", discussionTopic)
+		} catch {}
+	}, [discussionTopic])
+	useEffect(() => {
+		try {
+			localStorage.setItem("discussion_mode", discussionMode)
+		} catch {}
+	}, [discussionMode])
+	useEffect(() => {
+		try {
+			localStorage.setItem("discussion_maxRounds", String(discussionMaxRounds))
+		} catch {}
+	}, [discussionMaxRounds])
+	useEffect(() => {
+		try {
+			localStorage.setItem("discussion_participants", JSON.stringify(discussionParticipants))
+		} catch {}
+	}, [discussionParticipants])
 
 		/**
 		 * 判断当前是否有讨论正在进行

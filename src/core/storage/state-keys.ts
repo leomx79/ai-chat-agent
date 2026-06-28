@@ -80,6 +80,9 @@ export type GlobalStateKey =
 	| "sapAiCoreClientSecret"
 	| "sapAiCoreModelId"
 	| "claudeCodePath"
+	// 多AI讨论持久化
+	| "discussionState"
+	| "discussionMessages"
 
 export type LocalStateKey =
 	| "localClineRulesToggles"
