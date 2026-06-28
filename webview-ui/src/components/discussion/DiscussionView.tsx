@@ -615,7 +615,12 @@ const ParticipantRow = ({
 // --- Main component ---
 
 const DiscussionView = ({ onDone }: DiscussionViewProps) => {
-	const { discussionState, discussionStreamItems, discussionError } = useExtensionState()
+	// 已移除 discussionStreamItems 和 discussionError —— 旧讨论流和错误状态不再从上下文获取
+	const { discussionState } = useExtensionState()
+	// 旧讨论流条目已移除 —— 使用空数组占位（DiscussionView 不再被导入使用，仅保留文件以备将来参考）
+	const discussionStreamItems: DiscussionStreamItem[] = []
+	// 旧讨论错误状态已移除 —— 使用 undefined 占位
+	const discussionError: string | undefined = undefined
 	const { createDiscussion, sendChatMessage, stopDiscussion, generateProposal, clearDiscussion } = useDiscussion()
 
 	// Form state
@@ -660,7 +665,8 @@ const DiscussionView = ({ onDone }: DiscussionViewProps) => {
 
 	useEffect(() => {
 		scrollToBottom()
-	}, [discussionStreamItems, scrollToBottom])
+		// 已移除 discussionStreamItems 依赖 —— 旧讨论流条目不再使用
+	}, [scrollToBottom])
 
 	const handleAddParticipant = () => {
 		setParticipants((prev) => [

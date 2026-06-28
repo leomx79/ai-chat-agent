@@ -10,7 +10,8 @@ import type { DiscussionConfig } from "@shared/discussion-types"
  * updates.
  */
 export const useDiscussion = () => {
-	const { discussionState, discussionStreamItems, clearDiscussion } = useExtensionState()
+	// 已移除 discussionStreamItems —— 旧讨论流条目不再从上下文获取
+	const { discussionState, clearDiscussion } = useExtensionState()
 
 	const createDiscussion = useCallback((config: DiscussionConfig) => {
 		vscode.postMessage({
@@ -58,7 +59,7 @@ export const useDiscussion = () => {
 
 	return {
 		discussionState,
-		discussionStreamItems,
+		// 已移除 discussionStreamItems —— 旧讨论流条目不再返回
 		createDiscussion,
 		sendChatMessage,
 		stopDiscussion,

@@ -1,4 +1,4 @@
-﻿﻿﻿import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+﻿﻿﻿﻿﻿﻿import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import debounce from "debounce"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useDeepCompareEffect, useEvent, useMount } from "react-use"
@@ -94,6 +94,18 @@ async function convertHtmlToMarkdown(html: string) {
 export const MAX_IMAGES_AND_FILES_PER_MESSAGE = 20
 const QUICK_WINS_HISTORY_THRESHOLD = 300
 
+// ==================== 多AI讨论阶段进度条常量 ====================
+// 讨论的五个阶段顺序：熟悉 → 对齐 → 讨论 → 共识 → 方案
+const DISCUSSION_PHASES = ["familiarize", "align", "discuss", "converge", "propose"] as const
+// 各阶段对应的中文标签
+const DISCUSSION_PHASE_LABELS: Record<string, string> = {
+	familiarize: "熟悉",
+	align: "对齐",
+	discuss: "讨论",
+	converge: "共识",
+	propose: "方案",
+}
+
 const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryView }: ChatViewProps) => {
 	const {
 		version,
@@ -102,6 +114,8 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		apiConfiguration,
 		telemetrySetting,
 		navigateToChat,
+		// discussionState 用于在聊天视图顶部显示多AI讨论阶段进度条
+		discussionState,
 	} = useExtensionState()
 	const shouldShowQuickWins = false // !taskHistory || taskHistory.length < QUICK_WINS_HISTORY_THRESHOLD
 	//const task = messages.length > 0 ? (messages[0].say === "task" ? messages[0] : undefined) : undefined) : undefined
@@ -1147,8 +1161,70 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 			)}
 
 			{task && (
-				<>
-					<div style={{ flexGrow: 1, display: "flex" }} ref={scrollContainerRef}>
+			<>
+				{/* 多AI讨论阶段进度条 —— 当讨论进行中时显示在聊天消息区域顶部（Virtuoso 列表之前） */}
+				{discussionState &&
+					["discussing", "consensus", "proposing", "reviewing"].includes(discussionState.status) && (
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "4px",
+								padding: "0 10px",
+								height: "28px", // 紧凑高度 ~28px
+								flexShrink: 0,
+								backgroundColor: "var(--vscode-editorWidget-background)",
+								borderBottom: "1px solid var(--vscode-editorWidget-border)",
+							}}>
+							{/* 五个阶段徽章：熟悉 → 对齐 → 讨论 → 共识 → 方案 */}
+							{DISCUSSION_PHASES.map((phase, i) => {
+								// 当前阶段：优先使用 currentPhase，回退到 phase
+								const currentPhase = discussionState.currentPhase || discussionState.phase
+								const currentIndex = DISCUSSION_PHASES.indexOf(
+									currentPhase as (typeof DISCUSSION_PHASES)[number],
+								)
+								const isDone = currentIndex >= 0 && i < currentIndex // 已完成阶段
+								const isCurrent = currentIndex === i // 当前阶段
+								return (
+									<span
+										key={phase}
+										style={{
+											fontSize: "11px",
+											padding: "2px 8px",
+											borderRadius: "10px",
+											whiteSpace: "nowrap",
+											// 当前阶段：高亮彩色背景；已完成：暗色背景；未来：灰色透明
+											backgroundColor: isCurrent
+												? "var(--vscode-focusBorder)"
+												: isDone
+													? "var(--vscode-button-background)"
+													: "transparent",
+											color: isCurrent
+												? "var(--vscode-button-foreground)"
+												: isDone
+													? "var(--vscode-descriptionForeground)"
+													: "var(--vscode-disabledForeground)",
+											border: isCurrent ? "none" : "1px solid var(--vscode-editorWidget-border)",
+										}}>
+										{DISCUSSION_PHASE_LABELS[phase]}
+									</span>
+								)
+							})}
+							{/* 轮次显示：Round X/Y —— 仅当 maxRounds 和 currentRound 都存在时显示 */}
+							{discussionState.config?.maxRounds && discussionState.currentRound && (
+								<span
+									style={{
+										fontSize: "11px",
+										color: "var(--vscode-descriptionForeground)",
+										marginLeft: "auto",
+										whiteSpace: "nowrap",
+									}}>
+									Round {discussionState.currentRound}/{discussionState.config.maxRounds}
+								</span>
+							)}
+						</div>
+					)}
+				<div style={{ flexGrow: 1, display: "flex" }} ref={scrollContainerRef}>
 						<Virtuoso
 							ref={virtuosoRef}
 							key={task.ts} // trick to make sure virtuoso re-renders when task changes, and we use initialTopMostItemIndex to start at the bottom

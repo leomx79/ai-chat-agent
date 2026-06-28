@@ -4,14 +4,13 @@ import HistoryView from "./components/history/HistoryView"
 import SettingsView from "./components/settings/SettingsView"
 import WelcomeView from "./components/welcome/WelcomeView"
 import AccountView from "./components/account/AccountView"
-import DiscussionView from "./components/discussion/DiscussionView"
 import { useExtensionState } from "./context/ExtensionStateContext"
 import { UiServiceClient } from "./services/grpc-client"
 import McpView from "./components/mcp/configuration/McpConfigurationView"
 import { Providers } from "./Providers"
 import { Boolean, EmptyRequest } from "@shared/proto/common"
 import { WebviewProviderType } from "@shared/webview/types"
-import { Users } from "lucide-react"
+// 已移除 DiscussionView 导入和 lucide-react Users 图标 —— 旧的多AI讨论独立视图已被移除，讨论功能集成到 ChatView 中
 
 const AppContent = () => {
 	const {
@@ -23,17 +22,16 @@ const AppContent = () => {
 		showSettings,
 		showHistory,
 		showAccount,
-		showDiscussion,
+		// 已移除 showDiscussion —— 旧讨论视图状态不再需要
 		showAnnouncement,
 		setShowAnnouncement,
 		setShouldShowAnnouncement,
 		closeMcpView,
 		navigateToHistory,
-		navigateToDiscussion,
+		// 已移除 navigateToDiscussion 和 hideDiscussion —— 讨论导航逻辑不再需要
 		hideSettings,
 		hideHistory,
 		hideAccount,
-		hideDiscussion,
 		hideAnnouncement,
 	} = useExtensionState()
 
@@ -63,31 +61,19 @@ const AppContent = () => {
 			) : (
 				<>
 					{showSettings && <SettingsView onDone={hideSettings} />}
-					{showHistory && <HistoryView onDone={hideHistory} />}
-					{showMcp && <McpView initialTab={mcpTab} onDone={closeMcpView} />}
-					{showAccount && <AccountView onDone={hideAccount} />}
-					{showDiscussion && <DiscussionView onDone={hideDiscussion} />}
-					{/* Do not conditionally load ChatView, it's expensive and there's state we don't want to lose (user input, disableInput, askResponse promise, etc.) */}
-					<ChatView
-						showHistoryView={navigateToHistory}
-						isHidden={showSettings || showHistory || showMcp || showAccount || showDiscussion}
-						showAnnouncement={showAnnouncement}
-						hideAnnouncement={hideAnnouncement}
-					/>
-					{/* Floating button to toggle the discussion view */}
-					{!showSettings && !showHistory && !showMcp && !showAccount && !showDiscussion && (
-						<button
-							onClick={navigateToDiscussion}
-							title="Multi-AI Discussion"
-							className="fixed bottom-4 right-4 z-[150] flex items-center justify-center w-11 h-11 rounded-full shadow-lg transition-transform hover:scale-110"
-							style={{
-								backgroundColor: "var(--vscode-button-background)",
-								color: "var(--vscode-button-foreground)",
-							}}>
-							<Users size={20} />
-						</button>
-					)}
-				</>
+				{showHistory && <HistoryView onDone={hideHistory} />}
+				{showMcp && <McpView initialTab={mcpTab} onDone={closeMcpView} />}
+				{showAccount && <AccountView onDone={hideAccount} />}
+				{/* 已移除 DiscussionView 的条件渲染 —— 旧讨论视图已废弃 */}
+				{/* Do not conditionally load ChatView, it's expensive and there's state we don't want to lose (user input, disableInput, askResponse promise, etc.) */}
+				<ChatView
+					showHistoryView={navigateToHistory}
+					isHidden={showSettings || showHistory || showMcp || showAccount}
+					showAnnouncement={showAnnouncement}
+					hideAnnouncement={hideAnnouncement}
+				/>
+				{/* 已移除浮动讨论按钮 —— 讨论入口已集成到 ChatTextArea 中 */}
+			</>
 			)}
 		</>
 	)

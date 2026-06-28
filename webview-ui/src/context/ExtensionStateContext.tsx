@@ -31,7 +31,8 @@ import { McpMarketplaceCatalog, McpServer, McpViewTab } from "../../../src/share
 import { convertTextMateToHljs } from "../utils/textMateToHljs"
 import { OpenRouterCompatibleModelInfo } from "@shared/proto/models"
 import { UserInfo } from "@shared/proto/account"
-import type { DiscussionState, DiscussionStreamItem } from "@shared/discussion-types"
+import type { DiscussionState } from "@shared/discussion-types"
+// 已移除 DiscussionStreamItem 导入 —— 旧讨论流条目类型不再使用
 
 interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
@@ -53,12 +54,11 @@ interface ExtensionStateContextType extends ExtensionState {
 	showHistory: boolean
 	showAccount: boolean
 	showAnnouncement: boolean
-	showDiscussion: boolean
+	// 已移除 showDiscussion —— 旧讨论视图状态不再暴露
 
 	// Discussion state
 	discussionState?: DiscussionState
-	discussionStreamItems: DiscussionStreamItem[]
-	discussionError?: string
+	// 已移除 discussionStreamItems 和 discussionError —— 旧讨论流和错误状态不再暴露
 
 	// Setters
 	setApiConfiguration: (config: ApiConfiguration) => void
@@ -102,7 +102,7 @@ interface ExtensionStateContextType extends ExtensionState {
 	navigateToHistory: () => void
 	navigateToAccount: () => void
 	navigateToChat: () => void
-	navigateToDiscussion: () => void
+	// 已移除 navigateToDiscussion —— 旧讨论导航函数不再暴露
 
 	// Hide functions
 	hideSettings: () => void
@@ -110,7 +110,7 @@ interface ExtensionStateContextType extends ExtensionState {
 	hideAccount: () => void
 	hideAnnouncement: () => void
 	closeMcpView: () => void
-	hideDiscussion: () => void
+	// 已移除 hideDiscussion —— 旧讨论隐藏函数不再暴露
 
 	// Discussion actions
 	clearDiscussion: () => void
@@ -134,12 +134,11 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [showHistory, setShowHistory] = useState(false)
 	const [showAccount, setShowAccount] = useState(false)
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
-	const [showDiscussion, setShowDiscussion] = useState(false)
+	// 已移除 showDiscussion 状态 —— 旧讨论视图状态不再需要
 
-	// Discussion state
+	// Discussion state —— 仅保留 discussionState，用于 isDiscussionInProgress 判断
 	const [discussionState, setDiscussionState] = useState<DiscussionState | undefined>(undefined)
-	const [discussionStreamItems, setDiscussionStreamItems] = useState<DiscussionStreamItem[]>([])
-	const [discussionError, setDiscussionError] = useState<string | undefined>(undefined)
+	// 已移除 discussionStreamItems 和 discussionError 状态 —— 旧讨论流和错误状态不再需要
 
 	// Helper for MCP view
 	const closeMcpView = useCallback(() => {
@@ -152,85 +151,79 @@ export const ExtensionStateContextProvider: React.FC<{
 	const hideHistory = useCallback(() => setShowHistory(false), [setShowHistory])
 	const hideAccount = useCallback(() => setShowAccount(false), [setShowAccount])
 	const hideAnnouncement = useCallback(() => setShowAnnouncement(false), [setShowAnnouncement])
-	const hideDiscussion = useCallback(() => setShowDiscussion(false), [setShowDiscussion])
+	// 已移除 hideDiscussion 回调 —— 旧讨论隐藏函数不再需要
 
+	// 清除讨论状态 —— 仅重置 discussionState（旧 discussionStreamItems 和 discussionError 已移除）
 	const clearDiscussion = useCallback(() => {
 		setDiscussionState(undefined)
-		setDiscussionStreamItems([])
-		setDiscussionError(undefined)
 	}, [])
 
-	// Listen for discussion messages from the extension
+	// 监听来自扩展的讨论消息 —— 仅处理 discussionState（已移除 discussionStreamItem 和 discussionError 的处理）
 	useEvent("message", (event: MessageEvent) => {
 		const message: ExtensionMessage = event.data
 		if (!message || message.type !== "discussion") {
 			return
 		}
+		// 仅保留 discussionState 的处理，用于 isDiscussionInProgress 判断
 		if (message.discussionState) {
 			setDiscussionState(message.discussionState)
 		}
-		if (message.discussionStreamItem) {
-			setDiscussionStreamItems((prev) => [...prev, message.discussionStreamItem!])
-		}
-		if (message.discussionError) {
-			setDiscussionError(message.discussionError)
-		}
+		// 已移除 discussionStreamItem 和 discussionError 的处理 —— 旧讨论流和错误通道已清理
 	})
 
 	// Navigation functions
+	// 导航到 MCP 视图（已移除 setShowDiscussion 调用）
 	const navigateToMcp = useCallback(
 		(tab?: McpViewTab) => {
 			setShowSettings(false)
 			setShowHistory(false)
 			setShowAccount(false)
-			setShowDiscussion(false)
+			// 已移除 setShowDiscussion(false) —— 旧讨论视图状态不再需要
 			if (tab) {
 				setMcpTab(tab)
 			}
 			setShowMcp(true)
 		},
-		[setShowMcp, setMcpTab, setShowSettings, setShowHistory, setShowAccount, setShowDiscussion],
+		[setShowMcp, setMcpTab, setShowSettings, setShowHistory, setShowAccount],
 	)
 
+	// 导航到设置视图（已移除 setShowDiscussion 调用）
 	const navigateToSettings = useCallback(() => {
 		setShowHistory(false)
 		closeMcpView()
 		setShowAccount(false)
-		setShowDiscussion(false)
+		// 已移除 setShowDiscussion(false) —— 旧讨论视图状态不再需要
 		setShowSettings(true)
-	}, [setShowSettings, setShowHistory, closeMcpView, setShowAccount, setShowDiscussion])
+	}, [setShowSettings, setShowHistory, closeMcpView, setShowAccount])
 
+	// 导航到历史视图（已移除 setShowDiscussion 调用）
 	const navigateToHistory = useCallback(() => {
 		setShowSettings(false)
 		closeMcpView()
 		setShowAccount(false)
-		setShowDiscussion(false)
+		// 已移除 setShowDiscussion(false) —— 旧讨论视图状态不再需要
 		setShowHistory(true)
-	}, [setShowSettings, closeMcpView, setShowAccount, setShowHistory, setShowDiscussion])
+	}, [setShowSettings, closeMcpView, setShowAccount, setShowHistory])
 
+	// 导航到账户视图（已移除 setShowDiscussion 调用）
 	const navigateToAccount = useCallback(() => {
 		setShowSettings(false)
 		closeMcpView()
 		setShowHistory(false)
-		setShowDiscussion(false)
+		// 已移除 setShowDiscussion(false) —— 旧讨论视图状态不再需要
 		setShowAccount(true)
-	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount, setShowDiscussion])
+	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount])
 
+	// 导航到聊天视图（已移除 setShowDiscussion 调用）
 	const navigateToChat = useCallback(() => {
 		setShowSettings(false)
 		closeMcpView()
 		setShowHistory(false)
 		setShowAccount(false)
-		setShowDiscussion(false)
-	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount, setShowDiscussion])
+		// 已移除 setShowDiscussion(false) —— 旧讨论视图状态不再需要
+	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount])
 
-	const navigateToDiscussion = useCallback(() => {
-		setShowSettings(false)
-		closeMcpView()
-		setShowHistory(false)
-		setShowAccount(false)
-		setShowDiscussion(true)
-	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount, setShowDiscussion])
+	// 已移除 navigateToDiscussion 函数 —— 旧讨论导航逻辑不再需要
 
 	const [state, setState] = useState<ExtensionState>({
 		version: "",
@@ -739,10 +732,9 @@ export const ExtensionStateContextProvider: React.FC<{
 		showHistory,
 		showAccount,
 		showAnnouncement,
-		showDiscussion,
+		// 已移除 showDiscussion —— 旧讨论视图状态不再暴露到上下文
 		discussionState,
-		discussionStreamItems,
-		discussionError,
+		// 已移除 discussionStreamItems 和 discussionError —— 旧讨论流和错误状态不再暴露到上下文
 		globalClineRulesToggles: state.globalClineRulesToggles || {},
 		localClineRulesToggles: state.localClineRulesToggles || {},
 		localCursorRulesToggles: state.localCursorRulesToggles || {},
@@ -757,7 +749,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		navigateToHistory,
 		navigateToAccount,
 		navigateToChat,
-		navigateToDiscussion,
+		// 已移除 navigateToDiscussion —— 旧讨论导航函数不再暴露到上下文
 
 		// Hide functions
 		hideSettings,
@@ -765,7 +757,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		hideAccount,
 		hideAnnouncement,
 		closeMcpView,
-		hideDiscussion,
+		// 已移除 hideDiscussion —— 旧讨论隐藏函数不再暴露到上下文
 
 		// Discussion actions
 		clearDiscussion,
