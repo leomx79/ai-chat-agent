@@ -72,6 +72,13 @@ export class Controller {
 	 * 从而复用 ChatView/ChatRow 全套 UI 渲染。
 	 */
 	discussionMessages: ClineMessage[] = []
+	/**
+	 * 讨论状态推送节流定时器（断点#A修复）：
+	 * 流式 partial 消息每秒产生数十次，全量 postStateToWebview 会冻结扩展。
+	 * 用 leading+trailing throttle（200ms）合并推送，避免 O(n²) 恶化。
+	 */
+	private discussionPostTimer: ReturnType<typeof setTimeout> | null = null
+	private discussionPostTrailing = false
 	workspaceTracker: WorkspaceTracker
 	mcpHub: McpHub
 	accountService: ClineAccountService
@@ -109,6 +116,29 @@ export class Controller {
 
 		// 从 globalState 异步恢复上次讨论的状态和消息，确保重载后不丢失
 		this.restoreDiscussionState()
+	}
+
+	/**
+	 * 讨论状态推送节流（断点#A修复）：
+	 * 用 leading+trailing throttle（200ms）合并 postStateToWebview 调用，
+	 * 避免流式 partial 消息每秒数十次全量状态序列化导致扩展冻结。
+	 */
+	private throttledPostDiscussionState(): void {
+		if (this.discussionPostTimer) {
+			// 已有定时器在运行，标记需要 trailing 推送
+			this.discussionPostTrailing = true
+			return
+		}
+		// 立即推送一次（leading edge）
+		this.postStateToWebview()
+		// 200ms 后检查是否有 trailing 请求
+		this.discussionPostTimer = setTimeout(() => {
+			this.discussionPostTimer = null
+			if (this.discussionPostTrailing) {
+				this.discussionPostTrailing = false
+				this.throttledPostDiscussionState()
+			}
+		}, 200)
 	}
 
 	/**
@@ -319,10 +349,12 @@ export class Controller {
 						} else {
 							this.discussionMessages.push(clineMsg)
 						}
-						// 持久化讨论消息到 globalState，重载后可恢复
-						updateGlobalState(this.context, "discussionMessages", this.discussionMessages)
-						// 触发 state 更新，前端通过 gRPC subscribeToState 收到合并后的 clineMessages
-						this.postStateToWebview()
+						// 持久化：仅非 partial 消息写 globalState（partial 太频繁）
+						if (!clineMsg.partial) {
+							updateGlobalState(this.context, "discussionMessages", this.discussionMessages)
+						}
+						// 节流推送状态（断点#A修复）：200ms 合并一次，避免冻结
+						this.throttledPostDiscussionState()
 					},
 				)
 				await this.discussionManager.start(config)

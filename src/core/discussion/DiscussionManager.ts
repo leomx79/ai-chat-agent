@@ -658,6 +658,8 @@ Output the proposal in a clear, structured format.`
 
 		// Wrapped postStateToWebview — collects new text messages, then
 		// delegates to the controller so the real webview stays in sync.
+		// 断点#B修复：不再调用 notifyStateUpdate（会触发双重状态推送），
+		// collectNewTextMessages 中的 onClineMessage 已负责推送到前端。
 		const wrappedPostStateToWebview = async (): Promise<void> => {
 			const task = this.tasks.get(participant.id)
 			if (task) {
@@ -665,7 +667,7 @@ Output the proposal in a clear, structured format.`
 					lastProcessedTs = newTs
 				})
 			}
-			await this.notifyStateUpdate()
+			// 不再调用 notifyStateUpdate — onClineMessage 已负责推送
 		}
 
 		// Wrapped postMessageToWebview — intercept text messages, wrap as
