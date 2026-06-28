@@ -24,6 +24,19 @@ import type {
 	DiscussionPhase,
 	DiscussionStreamItem,
 } from "@shared/discussion-types"
+// 从 @shared/api 导入所有提供商的模型定义，确保模型列表与 api.ts 自动同步
+import {
+	anthropicModels,
+	openAiNativeModels,
+	deepSeekModels,
+	geminiModels,
+	mistralModels,
+	xaiModels,
+	internationalQwenModels,
+	doubaoModels,
+	sambanovaModels,
+	cerebrasModels,
+} from "@shared/api"
 
 // --- Constants ---
 
@@ -60,79 +73,22 @@ const PROVIDER_OPTIONS = [
 
 /**
  * 各提供商对应的可选模型列表
+ * 直接从 @shared/api 的模型定义中动态读取 Object.keys()
+ * 当 api.ts 中的模型列表更新时，这里会自动同步，无需手动维护
  * 键名与 PROVIDER_OPTIONS 的 value 一致
- * 当用户选择提供商后，模型ID下拉框会自动展示对应的模型列表
- * "__custom__" 为特殊值，表示用户想手动输入自定义模型ID
  */
 const PROVIDER_MODELS: Record<string, string[]> = {
-	anthropic: [
-		"claude-sonnet-4-20250514",
-		"claude-opus-4-20250514",
-		"claude-3-7-sonnet-20250219",
-		"claude-3-5-sonnet-20241022",
-		"claude-3-5-haiku-20241022",
-		"claude-3-opus-20240229",
-		"claude-3-haiku-20240307",
-	],
-	"openai-native": [
-		"gpt-4.1",
-		"gpt-4.1-mini",
-		"gpt-4.1-nano",
-		"gpt-4o",
-		"gpt-4o-mini",
-		"o3",
-		"o3-mini",
-		"o4-mini",
-	],
-	deepseek: [
-		"deepseek-chat",
-		"deepseek-reasoner",
-	],
-	gemini: [
-		"gemini-2.5-pro",
-		"gemini-2.5-flash",
-		"gemini-2.0-flash",
-		"gemini-2.0-flash-lite",
-		"gemini-1.5-pro",
-		"gemini-1.5-flash",
-	],
-	mistral: [
-		"devstral-small-2505",
-		"mistral-large-latest",
-		"mistral-small-latest",
-		"codestral-latest",
-		"mistral-nemo",
-	],
-	xai: [
-		"grok-3",
-		"grok-3-mini",
-		"grok-2",
-		"grok-2-vision",
-	],
-	qwen: [
-		"qwen-coder-plus-latest",
-		"qwen-plus-latest",
-		"qwen-turbo-latest",
-		"qwen-max-latest",
-	],
-	doubao: [
-		"doubao-1-5-pro-256k-250115",
-		"doubao-1-5-pro-32k-250115",
-		"doubao-1-5-lite-32k-250115",
-	],
-	sambanova: [
-		"Meta-Llama-3.3-70B-Instruct",
-		"Meta-Llama-3.1-405B-Instruct",
-		"Meta-Llama-3.1-8B-Instruct",
-		"Qwen2.5-72B-Instruct",
-	],
-	cerebras: [
-		"llama3.1-8b",
-		"llama3.1-70b",
-		"llama3.3-70b",
-		"qwen-2.5-coder-32b",
-	],
-	// 以下提供商的模型列表需要用户自行输入或从API获取
+	anthropic: Object.keys(anthropicModels),
+	"openai-native": Object.keys(openAiNativeModels),
+	deepseek: Object.keys(deepSeekModels),
+	gemini: Object.keys(geminiModels),
+	mistral: Object.keys(mistralModels),
+	xai: Object.keys(xaiModels),
+	qwen: Object.keys(internationalQwenModels),
+	doubao: Object.keys(doubaoModels),
+	sambanova: Object.keys(sambanovaModels),
+	cerebras: Object.keys(cerebrasModels),
+	// 以下提供商的模型列表需要用户自行输入或从API动态获取
 	openrouter: [],
 	openai: [],
 	together: [],
