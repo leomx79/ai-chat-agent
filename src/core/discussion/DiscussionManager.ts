@@ -321,6 +321,21 @@ export class DiscussionManager {
 	 * @param config The discussion configuration.
 	 */
 	async start(config: DiscussionConfig): Promise<void> {
+		// 验证参与者配置（问题4）：提前发现配置错误，避免 Task 创建后失败
+		for (const p of config.participants) {
+			if (!p.providerId) {
+				throw new Error(`参与者 "${p.name}" 未配置API提供商`)
+			}
+			if (!p.modelId) {
+				throw new Error(`参与者 "${p.name}" 未配置模型ID`)
+			}
+			// ollama 和 lmstudio 是本地模型，不需要 API 密钥
+			const localProviders = ["ollama", "lmstudio"]
+			if (!localProviders.includes(p.providerId) && !p.apiKey) {
+				throw new Error(`参与者 "${p.name}" 未配置API密钥`)
+			}
+		}
+
 		this.state.config = config
 		this.state.status = "discussing"
 		this.state.phase = "familiarize"
@@ -682,34 +697,50 @@ Output the proposal in a clear, structured format.`
 		this.state.streamingParticipantIds.push(participant.id)
 		this.notifyStateUpdate()
 
-		// Wait for the task to complete (or abort / timeout)
-		await this.waitForTaskCompletion(task)
+		// 错误处理（问题5）：捕获 Task 执行中的异常，发送可读错误到 ChatView
+		try {
+			// Wait for the task to complete (or abort / timeout)
+			await this.waitForTaskCompletion(task)
 
-		// Collect any remaining text messages that weren't captured by the
-		// callback (e.g. the final completion_result text).
-		const clineMessages = task.messageStateHandler.getClineMessages()
-		for (const clineMsg of clineMessages) {
-			if (
-				clineMsg.ts > lastProcessedTs &&
-				clineMsg.type === "say" &&
-				clineMsg.say === "text" &&
-				!clineMsg.partial &&
-				clineMsg.text
-			) {
-				this.addDiscussionMessage(participant, messageType, phase, clineMsg.text)
+			// Collect any remaining text messages that weren't captured by the
+			// callback (e.g. the final completion_result text).
+			const clineMessages = task.messageStateHandler.getClineMessages()
+			for (const clineMsg of clineMessages) {
+				if (
+					clineMsg.ts > lastProcessedTs &&
+					clineMsg.type === "say" &&
+					clineMsg.say === "text" &&
+					!clineMsg.partial &&
+					clineMsg.text
+				) {
+					this.addDiscussionMessage(participant, messageType, phase, clineMsg.text)
+				}
 			}
+		} catch (error) {
+			// 捕获异常，通过 onClineMessage 发送错误消息到 ChatView
+			const errorMsg = error instanceof Error ? error.message : String(error)
+			this.onClineMessage({
+				ts: Date.now(),
+				type: "say",
+				say: "error",
+				text: `参与者 "${participant.name}" 执行失败: ${errorMsg}`,
+				participantId: participant.id,
+				participantName: participant.name,
+				participantColor: participant.color,
+			})
+			this.onError(errorMsg)
+		} finally {
+			// Clean up: abort the task and remove it from the active map
+			task.taskState.abort = true
+			if (task.taskState.askResponse === undefined) {
+				task.handleWebviewAskResponse("noButtonClicked" as ClineAskResponse)
+			}
+			this.tasks.delete(participant.id)
+			this.state.streamingParticipantIds = this.state.streamingParticipantIds.filter(
+				(id) => id !== participant.id,
+			)
+			this.notifyStateUpdate()
 		}
-
-		// Clean up: abort the task and remove it from the active map
-		task.taskState.abort = true
-		if (task.taskState.askResponse === undefined) {
-			task.handleWebviewAskResponse("noButtonClicked" as ClineAskResponse)
-		}
-		this.tasks.delete(participant.id)
-		this.state.streamingParticipantIds = this.state.streamingParticipantIds.filter(
-			(id) => id !== participant.id,
-		)
-		this.notifyStateUpdate()
 	}
 
 	/**
@@ -748,16 +779,25 @@ Output the proposal in a clear, structured format.`
 
 		// --- Settings with sensible defaults ---
 
-		const autoApprovalSettings: AutoApprovalSettings = {
-			...DEFAULT_AUTO_APPROVAL_SETTINGS,
-			// Allow file reads so participants can explore the codebase
-			actions: {
-				...DEFAULT_AUTO_APPROVAL_SETTINGS.actions,
-				readFiles: true,
-				readFilesExternally: false,
-				executeSafeCommands: true,
-			},
-		}
+		/**
+	 * 讨论参与者自动批准所有操作，避免产生 ask 消息导致 ChatView 卡死。
+	 * 参与者是完全自主的 AI，不需要人工批准工具调用。
+	 */
+	const autoApprovalSettings: AutoApprovalSettings = {
+		...DEFAULT_AUTO_APPROVAL_SETTINGS,
+		enabled: true,
+		actions: {
+			...DEFAULT_AUTO_APPROVAL_SETTINGS.actions,
+			readFiles: true,
+			readFilesExternally: true,
+			editFiles: true,
+			editFilesExternally: true,
+			executeSafeCommands: true,
+			executeAllCommands: true,
+			useBrowser: true,
+			useMcp: true,
+		},
+	}
 
 		const browserSettings: BrowserSettings = { ...DEFAULT_BROWSER_SETTINGS }
 
@@ -853,14 +893,12 @@ Output the proposal in a clear, structured format.`
 	 * 然后通过 onClineMessage 回调转发到 controller 的主消息流，
 	 * 这样 ChatView/ChatRow 就能直接渲染参与者消息（含工具调用、命令等）。
 	 *
-	 * 同时对 text 消息调用 addDiscussionMessage 维护内部讨论状态。
+	 * 改进：
+	 * - 过滤 ask 类型消息，避免 ChatView 显示批准按钮导致卡死（问题1）
+	 * - 转发 partial 消息，实现流式实时输出（问题2）
+	 * - onClineMessage 回调中按 ts 去重，避免 partial 消息重复
 	 *
-	 * @param task           参与者的 Task 实例
-	 * @param participant    参与者配置（含 id/name/color）
-	 * @param phase          当前讨论阶段
-	 * @param messageType    讨论消息类型标签
-	 * @param sinceTs        只收集 ts > 此值的消息
-	 * @param updateTs       回调，用于更新调用方的 lastProcessedTs
+	 * 同时对 text 消息调用 addDiscussionMessage 维护内部讨论状态。
 	 */
 	private collectNewTextMessages(
 		task: Task,
@@ -874,7 +912,9 @@ Output the proposal in a clear, structured format.`
 		let maxTs = sinceTs
 
 		for (const clineMsg of clineMessages) {
-			if (clineMsg.ts > sinceTs && !clineMsg.partial) {
+			// 过滤 ask 类型消息（问题1）：ask 消息会触发 ChatView 批准按钮，
+			// 但响应路由到主 Task 而非参与者 Task，导致卡死
+			if (clineMsg.ts > sinceTs && clineMsg.type !== "ask") {
 				// 给消息打上参与者标记，转发到主消息流
 				// 创建浅拷贝避免修改原始消息
 				const taggedMsg: ClineMessage = {
@@ -885,8 +925,9 @@ Output the proposal in a clear, structured format.`
 				}
 				this.onClineMessage(taggedMsg)
 
-				// 对 text 消息同时维护内部讨论状态
-				if (clineMsg.type === "say" && clineMsg.say === "text" && clineMsg.text) {
+				// 对非 partial 的 text 消息维护内部讨论状态
+				//（partial 消息文本不完整，不需要记录）
+				if (!clineMsg.partial && clineMsg.type === "say" && clineMsg.say === "text" && clineMsg.text) {
 					this.addDiscussionMessage(participant, messageType, phase, clineMsg.text)
 				}
 

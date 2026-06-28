@@ -311,7 +311,14 @@ export class Controller {
 					},
 					// 新增：参与者消息注入主 clineMessages 流，复用 ChatView/ChatRow
 					(clineMsg) => {
-						this.discussionMessages.push(clineMsg)
+						// 按 ts 去重（问题2）：partial 消息会多次更新同一 ts，
+						// 替换已有消息而非追加，避免重复显示
+						const idx = this.discussionMessages.findIndex((m) => m.ts === clineMsg.ts)
+						if (idx >= 0) {
+							this.discussionMessages[idx] = clineMsg
+						} else {
+							this.discussionMessages.push(clineMsg)
+						}
 						// 持久化讨论消息到 globalState，重载后可恢复
 						updateGlobalState(this.context, "discussionMessages", this.discussionMessages)
 						// 触发 state 更新，前端通过 gRPC subscribeToState 收到合并后的 clineMessages
@@ -331,12 +338,14 @@ export class Controller {
 				if (this.discussionManager) {
 					this.discussionManager.abort()
 				}
-				// 停止后保存最终状态（status 会变为 stopped/completed）
+				// 问题7：停止后添加系统消息标记讨论结束，
+				// 保留消息供用户查看（启动新任务时由 clearTask 清空）
 				if (this.discussionState) {
+					this.discussionState.status = "done"
 					await updateGlobalState(this.context, "discussionState", this.discussionState)
 				}
-				// 保存最终消息
 				await updateGlobalState(this.context, "discussionMessages", this.discussionMessages)
+				this.postStateToWebview()
 				break
 			}
 			case "generateProposal": {
@@ -1046,6 +1055,15 @@ export class Controller {
 		}
 		this.task?.abortTask()
 		this.task = undefined // removes reference to it, so once promises end it will be garbage collected
+
+		// 问题3：清除讨论数据，避免旧讨论消息与新任务消息混合
+		this.discussionMessages = []
+		this.discussionState = undefined
+		this.discussionStreamItems = []
+		this.discussionManager?.abort()
+		this.discussionManager = undefined
+		await updateGlobalState(this.context, "discussionState", undefined)
+		await updateGlobalState(this.context, "discussionMessages", undefined)
 	}
 
 	// Caching mechanism to keep track of webview messages + API conversation history per provider instance

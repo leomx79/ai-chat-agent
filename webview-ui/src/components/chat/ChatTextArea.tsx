@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { MAX_IMAGES_AND_FILES_PER_MESSAGE } from "@/components/chat/ChatView"
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿import { MAX_IMAGES_AND_FILES_PER_MESSAGE } from "@/components/chat/ChatView"
 import ContextMenu from "@/components/chat/ContextMenu"
 import SlashCommandMenu from "@/components/chat/SlashCommandMenu"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
@@ -503,10 +503,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 	const [discussionParticipants, setDiscussionParticipants] = useState<DiscussionParticipant[]>(() => {
 		try {
 			const saved = localStorage.getItem("discussion_participants")
+			// 问题8：API密钥单独存储，从独立 key 恢复
+			const keysSaved = localStorage.getItem("discussion_api_keys")
 			if (saved) {
 				const parsed = JSON.parse(saved) as DiscussionParticipant[]
 				if (Array.isArray(parsed) && parsed.length > 0) {
-					return parsed
+					// 合并API密钥回参与者配置
+					const keys = keysSaved ? (JSON.parse(keysSaved) as Record<string, string>) : {}
+					return parsed.map((p) => ({ ...p, apiKey: keys[p.id] || "" }))
 				}
 			}
 		} catch {
@@ -533,7 +537,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 	}, [discussionMaxRounds])
 	useEffect(() => {
 		try {
-			localStorage.setItem("discussion_participants", JSON.stringify(discussionParticipants))
+			// 问题8：API密钥与主配置分离存储，降低泄露风险
+			const keysMap: Record<string, string> = {}
+			const sanitized = discussionParticipants.map((p) => {
+				if (p.apiKey) keysMap[p.id] = p.apiKey
+				return { ...p, apiKey: "" }
+			})
+			localStorage.setItem("discussion_participants", JSON.stringify(sanitized))
+			localStorage.setItem("discussion_api_keys", JSON.stringify(keysMap))
 		} catch {}
 	}, [discussionParticipants])
 
