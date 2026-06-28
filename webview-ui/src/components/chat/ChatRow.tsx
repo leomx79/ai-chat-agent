@@ -139,6 +139,62 @@ const RetryMessage = ({ seconds, attempt, retryOperations }: { retryOperations: 
 	)
 }
 
+/**
+ * 讨论参与者标识组件（多AI讨论模式专用）
+ *
+ * 在多AI讨论模式下，每条参与者消息内容顶部会显示此标识，
+ * 用于区分不同 AI 的发言：
+ *   - 一个彩色圆圈头像（背景色取自 participantColor，内部显示参与者名称首字母）
+ *   - 参与者名称文字（颜色取自 participantColor）
+ *
+ * 当 participantId 不存在时（普通模式）不会渲染此组件，行为完全不变。
+ */
+const ParticipantBadge = ({
+	participantName,
+	participantColor,
+}: {
+	participantName?: string
+	participantColor?: string
+}) => {
+	// 取参与者名称的首字母作为头像文字（兼容中英文，空值兜底为 "?"）
+	const initial = (participantName?.trim()?.[0] || "?").toUpperCase()
+	// 颜色兜底：防止 participantColor 为空时头像背景透明
+	const color = participantColor || "#888888"
+
+	return (
+		<div
+			style={{
+				display: "flex",
+				alignItems: "center",
+				gap: "6px",
+				marginBottom: "6px",
+			}}>
+			{/* 彩色圆圈头像：背景色为参与者颜色，内部居中显示首字母 */}
+			<span
+				style={{
+					display: "inline-flex",
+					alignItems: "center",
+					justifyContent: "center",
+					width: "20px",
+					height: "20px",
+					borderRadius: "50%",
+					backgroundColor: color,
+					color: "#fff",
+					fontSize: "11px",
+					fontWeight: "bold",
+					flexShrink: 0,
+					lineHeight: 1,
+				}}>
+				{initial}
+			</span>
+			{/* 参与者名称：文字颜色为参与者颜色 */}
+			<span style={{ color: color, fontWeight: 600, fontSize: "12px" }}>
+				{participantName || "参与者"}
+			</span>
+		</div>
+	)
+}
+
 const ChatRow = memo(
 	(props: ChatRowProps) => {
 		const { isLast, onHeightChange, message, lastModifiedMessage, inputValue } = props
@@ -470,6 +526,38 @@ export const ChatRowContent = ({
 		}
 		return null
 	}, [message.ask, message.say, message.text])
+
+	// --- 多AI讨论模式：系统消息特殊处理 ---
+	// 当 participantId === "system" 时，将该消息渲染为居中的灰色系统通知
+	// （小字号、灰色背景圆角条），而非普通的消息行。
+	// 注意：此提前 return 必须放在所有 hooks 之后，以遵守 React hooks 规则。
+	if (message.participantId === "system") {
+		return (
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "center",
+					margin: "4px 0",
+				}}>
+				<div
+					style={{
+						backgroundColor: "rgba(127, 127, 127, 0.15)",
+						borderRadius: "10px",
+						padding: "2px 12px",
+						maxWidth: "80%",
+					}}>
+					<span
+						className="ph-no-capture"
+						style={{
+							fontSize: "11px",
+							color: "var(--vscode-descriptionForeground)",
+						}}>
+						{message.text}
+					</span>
+				</div>
+			</div>
+		)
+	}
 
 	if (tool) {
 		const colorMap = {
@@ -1118,6 +1206,13 @@ export const ChatRowContent = ({
 							onMouseUp={handleMouseUp}
 							textToCopy={message.text}
 							position="bottom-right">
+							{/* 多AI讨论模式：在文本内容顶部显示参与者标识（participantId 存在且非 system 时） */}
+							{message.participantId && (
+								<ParticipantBadge
+									participantName={message.participantName}
+									participantColor={message.participantColor}
+								/>
+							)}
 							<Markdown markdown={message.text} />
 							{quoteButtonState.visible && (
 								<QuoteButton
