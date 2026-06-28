@@ -132,9 +132,9 @@ const RetryMessage = ({ seconds, attempt, retryOperations }: { retryOperations: 
 				color: normalColor,
 				fontWeight: "bold",
 			}}>
-			{`API请求（正在重试失败的第${attempt}/${retryOperations}次尝试`}
-			{remainingSeconds > 0 && ` ，${remainingSeconds}秒后重试`}
-			）...
+			{`API Request (Retrying failed attempt ${attempt}/${retryOperations}`}
+			{remainingSeconds > 0 && ` in ${remainingSeconds} seconds`}
+			)...
 		</span>
 	)
 }
@@ -304,7 +304,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>错误</span>,
+					<span style={{ color: errorColor, fontWeight: "bold" }}>Error</span>,
 				]
 			case "mistake_limit_reached":
 				return [
@@ -324,7 +324,7 @@ export const ChatRowContent = ({
 							color: errorColor,
 							marginBottom: "-1.5px",
 						}}></span>,
-					<span style={{ color: errorColor, fontWeight: "bold" }}>已达到最大请求数</span>,
+					<span style={{ color: errorColor, fontWeight: "bold" }}>Maximum Requests Reached</span>,
 				]
 			case "command":
 				return [
@@ -338,7 +338,7 @@ export const ChatRowContent = ({
 								marginBottom: "-1.5px",
 							}}></span>
 					),
-					<span style={{ color: normalColor, fontWeight: "bold" }}>Cline想要执行此命令：</span>,
+					<span style={{ color: normalColor, fontWeight: "bold" }}>Cline wants to execute this command:</span>,
 				]
 			case "use_mcp_server":
 				const mcpServerUse = JSON.parse(message.text || "{}") as ClineAskUseMcpServer
@@ -354,11 +354,11 @@ export const ChatRowContent = ({
 							}}></span>
 					),
 					<span className="ph-no-capture" style={{ color: normalColor, fontWeight: "bold", wordBreak: "break-word" }}>
-						Cline想要在{" "}
+						Cline wants to {mcpServerUse.type === "use_mcp_tool" ? "use a tool" : "access a resource"} on the{" "}
 						<code style={{ wordBreak: "break-all" }}>
 							{getMcpServerDisplayName(mcpServerUse.serverName, mcpMarketplaceCatalog)}
 						</code>{" "}
-						MCP服务器上{mcpServerUse.type === "use_mcp_tool" ? "使用工具" : "访问资源"}：
+						MCP server:
 					</span>,
 				]
 			case "completion_result":
@@ -513,8 +513,8 @@ export const ChatRowContent = ({
 						<div style={headerStyle}>
 							{toolIcon("new-file")}
 							{tool.operationIsLocatedInWorkspace === false &&
-								toolIcon("sign-out", "yellow", -90, "此文件在工作区之外")}
-							<span style={{ fontWeight: "bold" }}>Cline想要创建新文件：</span>
+								toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
+							<span style={{ fontWeight: "bold" }}>Cline wants to create a new file:</span>
 						</div>
 						<CodeAccordian
 							isLoading={message.partial}
@@ -531,10 +531,10 @@ export const ChatRowContent = ({
 						<div style={headerStyle}>
 							{toolIcon("file-code")}
 							{tool.operationIsLocatedInWorkspace === false &&
-								toolIcon("sign-out", "yellow", -90, "此文件在工作区之外")}
+								toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
 							<span style={{ fontWeight: "bold" }}>
 								{/* {message.type === "ask" ? "" : "Cline read this file:"} */}
-								Cline想要读取此文件：
+								Cline wants to read this file:
 							</span>
 						</div>
 						<div
@@ -591,11 +591,11 @@ export const ChatRowContent = ({
 						<div style={headerStyle}>
 							{toolIcon("folder-opened")}
 							{tool.operationIsLocatedInWorkspace === false &&
-								toolIcon("sign-out", "yellow", -90, "此位置在工作区之外")}
+								toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
-									? "Cline想要查看此目录的顶层文件："
-									: "Cline查看了此目录的顶层文件："}
+									? "Cline wants to view the top level files in this directory:"
+									: "Cline viewed the top level files in this directory:"}
 							</span>
 						</div>
 						<CodeAccordian
@@ -635,11 +635,11 @@ export const ChatRowContent = ({
 						<div style={headerStyle}>
 							{toolIcon("file-code")}
 							{tool.operationIsLocatedInWorkspace === false &&
-								toolIcon("sign-out", "yellow", -90, "此文件在工作区之外")}
+								toolIcon("sign-out", "yellow", -90, "This file is outside of your workspace")}
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
-									? "Cline想要查看此目录中使用的源代码定义名称："
-									: "Cline查看了此目录中使用的源代码定义名称："}
+									? "Cline wants to view source code definition names used in this directory:"
+									: "Cline viewed source code definition names used in this directory:"}
 							</span>
 						</div>
 						<CodeAccordian
@@ -656,9 +656,9 @@ export const ChatRowContent = ({
 						<div style={headerStyle}>
 							{toolIcon("search")}
 							{tool.operationIsLocatedInWorkspace === false &&
-								toolIcon("sign-out", "yellow", -90, "此位置在工作区之外")}
+								toolIcon("sign-out", "yellow", -90, "This is outside of your workspace")}
 							<span style={{ fontWeight: "bold" }}>
-								Cline想要在此目录中搜索 <code>{tool.regex}</code>:
+								Cline wants to search this directory for <code>{tool.regex}</code>:
 							</span>
 						</div>
 						<CodeAccordian
@@ -676,11 +676,11 @@ export const ChatRowContent = ({
 						<div style={headerStyle}>
 							<span className="codicon codicon-link" style={{ color: normalColor, marginBottom: "-1.5px" }}></span>
 							{tool.operationIsLocatedInWorkspace === false &&
-								toolIcon("sign-out", "yellow", -90, "此URL为外部链接")}
+								toolIcon("sign-out", "yellow", -90, "This URL is external")}
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
-									? "Cline想要获取此URL的内容："
-									: "Cline已获取此URL的内容："}
+									? "Cline wants to fetch content from this URL:"
+									: "Cline fetched content from this URL:"}
 							</span>
 						</div>
 						<div
@@ -793,7 +793,7 @@ export const ChatRowContent = ({
 									padding: `2px 8px ${isExpanded ? 0 : 8}px 8px`,
 								}}>
 								<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"}`}></span>
-								<span style={{ fontSize: "0.8em" }}>命令输出</span>
+								<span style={{ fontSize: "0.8em" }}>Command Output</span>
 							</div>
 							{isExpanded && <CodeBlock source={`${"```"}shell\n${output}\n${"```"}`} />}
 						</div>
@@ -810,7 +810,7 @@ export const ChatRowContent = ({
 							color: "var(--vscode-editorWarning-foreground)",
 						}}>
 						<i className="codicon codicon-warning"></i>
-						<span>模型已确定此命令需要明确批准。</span>
+						<span>The model has determined this command requires explicit approval.</span>
 					</div>
 				)}
 			</>
@@ -992,14 +992,14 @@ export const ChatRowContent = ({
 																	fontWeight: "bold",
 																	color: "#FFA500",
 																}}>
-																速率限制超出
+																Rate Limit Exceeded
 															</span>
 														</div>
 														<p style={{ margin: 0, fontSize: "14px", lineHeight: "1.4" }}>
-															您已达到API速率限制。这可能是由于免费套餐的限制。
+															You've hit the API rate limit. This is likely due to free tier limits.
 														</p>
 														<p style={{ margin: "8px 0 0 0", fontSize: "12px", lineHeight: "1.4" }}>
-															您可以在此处阅读关于套餐限制的信息{" "}
+															You can read about the tier limits{" "}
 															<a
 																href="https://codeassist.google/"
 																style={{
@@ -1016,8 +1016,8 @@ export const ChatRowContent = ({
 																}}>
 																here
 															</a>
-															，或者，您可以使用Gemini Flash模型以获得
-															更好的限制。
+															, or alternatively, you can use the Gemini Flash Model that will give
+															you better limits.
 														</p>
 													</div>
 												)
@@ -1047,14 +1047,14 @@ export const ChatRowContent = ({
 													<>
 														<br />
 														<br />
-														看起来您遇到了Windows PowerShell问题，请查看此{" "}
+														It seems like you're having Windows PowerShell issues, please see this{" "}
 														<a
 															href="https://github.com/cline/cline/wiki/TroubleShooting-%E2%80%90-%22PowerShell-is-not-recognized-as-an-internal-or-external-command%22"
 															style={{
 																color: "inherit",
 																textDecoration: "underline",
 															}}>
-															故障排除指南
+															troubleshooting guide
 														</a>
 														.
 													</>
@@ -1106,7 +1106,7 @@ export const ChatRowContent = ({
 								}}
 							/>
 							<div style={{ flex: 1, wordBreak: "break-word" }}>
-								<span style={{ fontWeight: 500 }}>MCP通知： </span>
+								<span style={{ fontWeight: 500 }}>MCP Notification: </span>
 								<span className="ph-no-capture">{message.text}</span>
 							</div>
 						</div>
@@ -1161,7 +1161,7 @@ export const ChatRowContent = ({
 										</div>
 									) : (
 										<div style={{ display: "flex", alignItems: "center" }}>
-											<span style={{ fontWeight: "bold", marginRight: "4px" }}>思考：</span>
+											<span style={{ fontWeight: "bold", marginRight: "4px" }}>Thinking:</span>
 											<span
 												className="ph-no-capture"
 												style={{
@@ -1258,9 +1258,9 @@ export const ChatRowContent = ({
 											fontSize: 14,
 											color: "var(--vscode-descriptionForeground)",
 										}}></i>
-									<span style={{ fontWeight: 500 }}>差异编辑不匹配</span>
+									<span style={{ fontWeight: 500 }}>Diff Edit Mismatch</span>
 								</div>
-								<div>模型使用的搜索模式与文件中的任何内容都不匹配。正在重试...</div>
+								<div>The model used search patterns that don't match anything in the file. Retrying...</div>
 							</div>
 						</>
 					)
@@ -1294,13 +1294,13 @@ export const ChatRowContent = ({
 											fontWeight: 500,
 											color: "#FFA500",
 										}}>
-										访问被拒绝
+										Access Denied
 									</span>
 								</div>
 								<div>
-									Cline尝试访问 <code>{message.text}</code> ，该路径被{" "}
+									Cline tried to access <code>{message.text}</code> which is blocked by the{" "}
 									<code>.clineignore</code>
-									文件阻止。
+									file.
 								</div>
 							</div>
 						</>
@@ -1323,7 +1323,7 @@ export const ChatRowContent = ({
 								padding: "4px 0",
 							}}>
 							<i className="codicon codicon-book" style={{ marginRight: 6 }} />
-							正在加载MCP文档
+							Loading MCP documentation
 						</div>
 					)
 				case "completion_result":
@@ -1555,7 +1555,7 @@ export const ChatRowContent = ({
 													cursor: seeNewChangesDisabled ? "wait" : "pointer",
 												}}
 											/>
-											查看新更改
+											See new changes
 										</SuccessButton>
 									</div>
 								)}
@@ -1637,8 +1637,8 @@ export const ChatRowContent = ({
 										marginBottom: "-1.5px",
 									}}></span>
 								<span style={{ color: normalColor, fontWeight: "bold" }}>
-									Cline想要压缩您的对话：
-								</span>
+										Clne wants to coidnnse your conversation:o condense your conversation:
+									</span>
 							</div>
 							<NewTaskPreview context={message.text || ""} />
 						</>
@@ -1654,7 +1654,7 @@ export const ChatRowContent = ({
 										marginBottom: "-1.5px",
 									}}></span>
 								<span style={{ color: normalColor, fontWeight: "bold" }}>
-									Cline想要创建GitHub问题：
+									Cline wants to create a Github issue:
 								</span>
 							</div>
 							<ReportBugPreview data={message.text || ""} />

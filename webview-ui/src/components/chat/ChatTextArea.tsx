@@ -51,7 +51,7 @@ const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: n
 		const img = new Image()
 		img.onload = () => {
 			if (img.naturalWidth > 7500 || img.naturalHeight > 7500) {
-				reject(new Error("图片尺寸超过最大允许的7500px。"))
+				reject(new Error("Image dimensions exceed maximum allowed size of 7500px."))
 			} else {
 				resolve({ width: img.naturalWidth, height: img.naturalHeight })
 			}
@@ -1581,7 +1581,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					/>
 					{!inputValue && selectedImages.length === 0 && selectedFiles.length === 0 && (
 						<div className="absolute bottom-4 left-[25px] right-[60px] text-[10px] text-[var(--vscode-input-placeholderForeground)] opacity-70 whitespace-nowrap overflow-hidden text-ellipsis pointer-events-none z-[1]">
-							输入 @ 添加上下文，/ 使用斜杠命令和工作流，按住shift拖入文件/图片
+							Type @ for context, / for slash commands & workflows, hold shift to drag in files/images
 						</div>
 					)}
 					{(selectedImages.length > 0 || selectedFiles.length > 0) && (
@@ -1665,11 +1665,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								height: "100%",
 								zIndex: 6,
 							}}>
-							<Tooltip tipText="添加上下文" style={{ left: 0 }}>
+							<Tooltip tipText="Add Context" style={{ left: 0 }}>
 								<VSCodeButton
 									data-testid="context-button"
 									appearance="icon"
-									aria-label="添加上下文"
+									aria-label="Add Context"
 									onClick={handleContextButtonClick}
 									style={{ padding: "0px 0px", height: "20px" }}>
 									<ButtonContainer>
@@ -1680,11 +1680,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								</VSCodeButton>
 							</Tooltip>
 
-							<Tooltip tipText="添加文件和图片">
+							<Tooltip tipText="Add Files & Images">
 								<VSCodeButton
 									data-testid="files-button"
 									appearance="icon"
-									aria-label="添加文件和图片"
+									aria-label="Add Files & Images"
 									disabled={shouldDisableFilesAndImages}
 									onClick={() => {
 										if (!shouldDisableFilesAndImages) {
@@ -1723,7 +1723,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										role="button"
 										isActive={showModelSelector}
 										disabled={false}
-										title="选择模型/API提供商"
+										title="Select Model / API Provider"
 										onClick={handleModelButtonClick}
 										tabIndex={0}>
 										<ModelButtonContent>{modelDisplayName}</ModelButtonContent>

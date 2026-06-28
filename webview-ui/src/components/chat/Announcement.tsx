@@ -40,7 +40,7 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 				<span className="codicon codicon-close"></span>
 			</VSCodeButton>
 			<h3 style={h3TitleStyle}>
-				🎉{"  "}v{minorVersion}
+				🎉{"  "}New in v{minorVersion}
 			</h3>
 			<ul style={ulStyle}>
 				<li>
@@ -62,8 +62,8 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			<Accordion isCompact className="pl-0">
 				<AccordionItem
 					key="1"
-					aria-label="历史更新"
-					title="历史更新："
+					aria-label="Previous Updates"
+					title="Previous Updates:"
 					classNames={{
 						trigger: "bg-transparent border-0 pl-0 pb-0 w-fit",
 						title: "font-bold text-[var(--vscode-foreground)]",
@@ -72,45 +72,45 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					}}>
 					<ul style={ulStyle}>
 						<li>
-							<b>Claude 4 模型：</b> 现已在 Anthropic 和 Vertex 提供商中支持 Anthropic Claude Sonnet 4 和 Claude Opus 4。
-							
+							<b>Claude 4 Models:</b> Now with support for Anthropic Claude Sonnet 4 and Claude Opus 4 in both
+							Anthropic and Vertex providers.
 						</li>
 						<li>
-							<b>新设置页面：</b> 重新设计的设置页面，现拆分为选项卡，便于导航和更清爽的体验。
-							
+							<b>New Settings Page:</b> Redesigned settings, now split into tabs for easier navigation and a cleaner
+							experience.
 						</li>
 						<li>
-							<b>Nebius AI Studio：</b> 新增 Nebius AI Studio 作为新提供商。（感谢 @Aktsvigun！）
+							<b>Nebius AI Studio:</b> Added Nebius AI Studio as a new provider. (Thanks @Aktsvigun!)
 						</li>
 						<li>
-							<b>工作流：</b> 创建和管理工作流文件，可通过斜杠命令注入对话，轻松自动化重复任务。
-							
+							<b>Workflows:</b> Create and manage workflow files that can be injected into conversations via slash
+							commands, making it easy to automate repetitive tasks.
 						</li>
 						<li>
-							<b>可折叠任务列表：</b> 共享屏幕时隐藏最近的任务，保护您的提示隐私。
-							
+							<b>Collapsible Task List:</b> Hide your recent tasks when sharing your screen to keep your prompts
+							private.
 						</li>
 						<li>
-							<b>Vertex AI 全局端点：</b> 改善了 Vertex AI 用户的可用性，减少了速率限制错误。
-							
+							<b>Global Endpoint for Vertex AI:</b> Improved availability and reduced rate limiting errors for
+							Vertex AI users.
 						</li>
 					</ul>
 				</AccordionItem>
 			</Accordion>
 			<div style={hrStyle} />
 			<p style={linkContainerStyle}>
-				在{" "}
+				Join us on{" "}
 				<VSCodeLink style={linkStyle} href="https://x.com/cline">
-					X、
+					X,
 				</VSCodeLink>{" "}
 				<VSCodeLink style={linkStyle} href="https://discord.gg/cline">
-					Discord、
+					discord,
 				</VSCodeLink>{" "}
-				或{" "}
+				or{" "}
 				<VSCodeLink style={linkStyle} href="https://www.reddit.com/r/cline/">
 					r/cline
 				</VSCodeLink>
-				上关注我们，获取更多更新！
+				for more updates!
 			</p>
 		</div>
 	)

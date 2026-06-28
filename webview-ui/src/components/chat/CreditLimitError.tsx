@@ -36,8 +36,8 @@ const CreditLimitError: React.FC<CreditLimitErrorProps> = ({ currentBalance, tot
 					marginBottom: "8px",
 				}}>
 				<span className="codicon codicon-credit-card" style={{ fontSize: "14px", marginRight: "6px" }} />
-				购买额度
-			</VSCodeButtonLink>
+			购买额度
+		</VSCodeButtonLink>
 
 			<VSCodeButton
 				onClick={async () => {

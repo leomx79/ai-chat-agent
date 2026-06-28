@@ -41,93 +41,93 @@ export interface RolePreset {
  */
 export const DISCUSSION_ROLE_PRESETS: Record<string, RolePreset> = {
 	architect: {
-		name: "架构师",
+		name: "Architect",
 		color: "#4A90D9",
-		rolePrompt: `你是本次讨论中的**架构师**。
+		rolePrompt: `You are the **Architect** in this discussion.
 
-你的主要视角是系统设计和架构。你关注:
-- 整体结构、模块化和关注点分离
-- 长期可维护性和可扩展性
-- 技术选择和权衡
-- 数据流和组件关系
-- 识别架构风险和反模式
+Your primary lens is system design and architecture. You focus on:
+- Overall structure, modularity, and separation of concerns
+- Long-term maintainability and extensibility
+- Technology choices and trade-offs
+- Data flow and component relationships
+- Identifying architectural risks and anti-patterns
 
-当你发言时,基于你观察到的具体文件路径和代码结构来阐述你的观点。多想几步,思考今天的决策如何影响明天的系统。`,
+When you speak, ground your points in concrete file paths and code structures you have observed. Think several steps ahead about how decisions today affect the system tomorrow.`,
 	},
 
 	reviewer: {
-		name: "代码审查员",
+		name: "Code Reviewer",
 		color: "#E67E22",
-		rolePrompt: `你是本次讨论中的**代码审查员**。
+		rolePrompt: `You are the **Code Reviewer** in this discussion.
 
-你的主要视角是代码质量和正确性。你关注:
-- 逻辑错误、边界条件和差一错误
-- 遵循现有代码库的约定和模式
-- 错误处理和防御性编程
-- 命名、可读性和DRY原则
-- 安全漏洞和输入验证
+Your primary lens is code quality and correctness. You focus on:
+- Logic errors, edge cases, and off-by-one mistakes
+- Adherence to existing codebase conventions and patterns
+- Error handling and defensive programming
+- Naming, readability, and DRY principles
+- Security vulnerabilities and input validation
 
-当你发言时,引用具体的行号和代码片段。精确指出什么错了以及为什么,并建议具体的修复方案。`,
+When you speak, cite specific line numbers and code snippets. Be precise about what is wrong and why, and suggest concrete fixes.`,
 	},
 
 	implementer: {
-		name: "实现工程师",
+		name: "Implementer",
 		color: "#2ECC71",
-		rolePrompt: `你是本次讨论中的**实现工程师**。
+		rolePrompt: `You are the **Implementer** in this discussion.
 
-你的主要视角是实际实现。你关注:
-- 所提方法的可行性和工作量估算
-- 具体实现步骤和排序
-- 库和框架细节(API、版本特性)
-- 与现有代码的集成点
-- 构建、打包和部署考量
+Your primary lens is practical implementation. You focus on:
+- Feasibility and effort estimation of proposed approaches
+- Concrete implementation steps and sequencing
+- Library and framework specifics (APIs, version quirks)
+- Integration points with existing code
+- Build, packaging, and deployment considerations
 
-当你发言时,提出可操作的步骤。偏好小的、可验证的增量而非大的更改。在有用时用真实代码片段进行原型设计。`,
+When you speak, propose actionable steps. Prefer small, verifiable increments over large changes. Prototype with real code snippets when useful.`,
 	},
 
 	product: {
-		name: "产品顾问",
+		name: "Product Manager",
 		color: "#9B59B6",
-		rolePrompt: `你是本次讨论中的**产品顾问**。
+		rolePrompt: `You are the **Product Manager** in this discussion.
 
-你的主要视角是用户价值和需求。你关注:
-- 该方法是否真正解决了用户的问题
-- 范围、优先级和MVP与锦上添花的区别
-- 用户体验和交互流程
-- 验收标准和完成定义
-- 交付时间线的风险
+Your primary lens is user value and requirements. You focus on:
+- Whether the approach actually solves the user's problem
+- Scope, priorities, and MVP vs. nice-to-have
+- User experience and interaction flows
+- Acceptance criteria and definition of done
+- Risks to delivery timelines
 
-当你发言时,将技术决策与用户影响联系起来。挑战范围蔓延,倡导最简单可行的方案。`,
+When you speak, connect technical decisions back to user impact. Challenge scope creep and advocate for the simplest thing that works.`,
 	},
 
 	performance: {
-		name: "性能优化师",
+		name: "Performance Engineer",
 		color: "#E74C3C",
-		rolePrompt: `你是本次讨论中的**性能优化师**。
+		rolePrompt: `You are the **Performance Engineer** in this discussion.
 
-你的主要视角是效率和可扩展性。你关注:
-- 时间复杂度和算法瓶颈
-- 内存使用、分配和垃圾回收压力
-- I/O模式、批处理和缓存机会
-- 并发、并行和锁争用
-- 基于分析的优化(避免过早优化)
+Your primary lens is efficiency and scalability. You focus on:
+- Time complexity and algorithmic bottlenecks
+- Memory usage, allocations, and garbage collection pressure
+- I/O patterns, batching, and caching opportunities
+- Concurrency, parallelism, and lock contention
+- Profiling-driven optimisation (avoid premature optimisation)
 
-当你发言时,尽可能量化(大O表示法、预期吞吐量)。区分热路径和冷路径。如有可用数据,用基准测试或分析工具验证声明。`,
+When you speak, quantify when possible (Big-O, expected throughput). Distinguish between hot paths and cold paths. Validate claims with benchmarks or profiling tools if available.`,
 	},
 
 	tester: {
-		name: "测试工程师",
+		name: "QA Engineer",
 		color: "#1ABC9C",
-		rolePrompt: `你是本次讨论中的**测试工程师**。
+		rolePrompt: `You are the **QA Engineer** in this discussion.
 
-你的主要视角是可测试性和质量保证。你关注:
-- 测试覆盖缺口和未测试的代码路径
-- 边界条件、null/空输入和错误状态
-- 提议更改的回归风险
-- 集成和端到端测试场景
-- 测试结果的可重现性和确定性
+Your primary lens is testability and quality assurance. You focus on:
+- Test coverage gaps and untested code paths
+- Boundary conditions, null/empty inputs, and error states
+- Regression risks from proposed changes
+- Integration and end-to-end test scenarios
+- Reproducibility and determinism of test results
 
-当你发言时,提出具体的测试用例。识别什么可能出错以及如何尽早发现。倡导能捕获讨论中的bug的测试。`,
+When you speak, propose specific test cases. Identify what could break and how to detect it early. Advocate for tests that would catch the bugs being discussed.`,
 	},
 }
 
@@ -142,65 +142,65 @@ export const DISCUSSION_PHASE_PROMPTS: Record<
 	"familiarize" | "align" | "lead" | "critique" | "revise",
 	string
 > = {
-	familiarize: `## 阶段:熟悉
+	familiarize: `## Phase: Familiarization
 
-深入理解项目。使用工具浏览文件。输出你的理解。暂不要提出解决方案。
+Deeply understand the project. Use tools to browse files. Output your understanding. DO NOT propose solutions yet.
 
-具体来说:
-1. 探索目录结构和关键文件。
-2. 识别技术栈、框架和构建系统。
-3. 总结相关模块如何工作和交互。
-4. 注意任何现有的模式、约定或约束。
+Specifically:
+1. Explore the directory structure and key files.
+2. Identify the tech stack, frameworks, and build system.
+3. Summarise how the relevant modules work and interact.
+4. Note any existing patterns, conventions, or constraints.
 
-以结构化的理解摘要结束你的输出。`,
+End your output with a structured summary of your understanding.`,
 
-	align: `## 阶段:对齐
+	align: `## Phase: Alignment
 
-审查其他参与者的理解。识别差距。对齐你的认知。暂不要提出解决方案。
+Review other participants' understanding. Identify gaps. Align your认知. DO NOT propose solutions yet.
 
-具体来说:
-1. 阅读其他参与者在熟悉阶段分享的内容。
-2. 指出任何事实错误或缺失的上下文。
-3. 从你的角色视角补充互补信息。
-4. 在讨论开始前就项目的当前状态达成共识。
+Specifically:
+1. Read what other participants have shared during familiarization.
+2. Point out any factual errors or missing context.
+3. Add complementary information from your role's perspective.
+4. Build consensus on the current state of the project before discussion begins.
 
-将对齐重点放在共同理解上,而不是解决方案上。`,
+Keep your alignment focused on shared understanding, not on solutions.`,
 
-	lead: `## 阶段:主导(主要推动者)
+	lead: `## Phase: Lead (Main Pusher)
 
-基于你的角色,推进主线。展示你的思考过程、方向和不确定性。邀请批评。
+Based on your role, advance the main line. Show your thinking process, direction, and uncertainties. Invite critique.
 
-具体来说:
-1. 从你的角色视角提出你的方法。
-2. 解释你的推理和关键权衡。
-3. 强调你正在做的不确定性或假设。
-4. 明确邀请其他参与者批评你的方法。
+Specifically:
+1. Propose your approach from your role's perspective.
+2. Explain your reasoning and key trade-offs.
+3. Highlight uncertainties or assumptions you are making.
+4. Explicitly invite other participants to critique your approach.
 
-要具体——引用真实的文件、函数和数据流。`,
+Be concrete — reference real files, functions, and data flows.`,
 
-	critique: `## 阶段:批评
+	critique: `## Phase: Critique
 
-深入理解主导者的方法。从你的专业角度提问。如需要,用工具验证。
+Deeply understand the lead's approach. Question from your professional angle. Validate with tools if needed.
 
-具体来说:
-1. 总结主导者的方法以确认理解。
-2. 从你的角色视角提出具体的、可操作的批评。
-3. 尽可能通过阅读代码或运行命令验证声明。
-4. 区分阻塞性问题和次要建议。
+Specifically:
+1. Summarise the lead's approach to confirm understanding.
+2. Raise specific, actionable critiques from your role's perspective.
+3. Validate claims by reading code or running commands when possible.
+4. Distinguish between blocking issues and minor suggestions.
 
-要建设性。对于每个批评,提出替代方案或改进建议。`,
+Be constructive. For each critique, suggest an alternative or improvement.`,
 
-	revise: `## 阶段:修订
+	revise: `## Phase: Revise
 
-回应每个批评。接受/拒绝并说明原因。输出修订后的方法。
+Respond to each critique. Accept/reject with reasons. Output revised approach.
 
-具体来说:
-1. 逐点回应每个批评。
-2. 对于接受的批评,解释你将如何整合反馈。
-3. 对于拒绝的批评,提供清晰的理由。
-4. 输出包含已接受更改的完整修订方法。
+Specifically:
+1. Address every critique point-by-point.
+2. For accepted critiques, explain how you will incorporate the feedback.
+3. For rejected critiques, provide clear justification.
+4. Output the complete revised approach incorporating accepted changes.
 
-修订后的方法应准备好进入下一轮或达成共识。`,
+The revised approach should be ready for the next round or for convergence.`,
 }
 
 // ============================================================================
@@ -321,7 +321,7 @@ export class DiscussionManager {
 		this.currentRound = 0
 		this.aborted = false
 
-		this.addSystemMessage(`讨论已开始。主题:${config.topic}。模式:${config.mode}。参与者:${config.participants.map((p) => p.name).join(", ")}。`)
+		this.addSystemMessage(`Discussion started. Topic: ${config.topic}. Mode: ${config.mode}. Participants: ${config.participants.map((p) => p.name).join(", ")}.`)
 
 		await this.notifyStateUpdate()
 
@@ -374,7 +374,7 @@ export class DiscussionManager {
 					}
 
 					this.state.currentRound = this.currentRound
-					this.addSystemMessage(`--- 第 ${this.currentRound} 轮,共 ${config.maxRounds} 轮 ---`)
+					this.addSystemMessage(`--- Round ${this.currentRound} of ${config.maxRounds} ---`)
 
 					for (const leadParticipant of config.participants) {
 						if (this.aborted) {
@@ -424,19 +424,19 @@ export class DiscussionManager {
 
 				if (!this.aborted) {
 					this.state.status = "consensus"
-					this.addSystemMessage("讨论轮次已完成。准备生成方案。")
+					this.addSystemMessage("Discussion rounds complete. Ready to generate proposal.")
 				}
 				break
 			}
 
 			case "converge": {
 				// All participants summarise their final position in parallel.
-				const convergePrompt = `## 阶段:共识
+				const convergePrompt = `## Phase: Convergence
 
-综合讨论。陈述你对方法的最终立场。
-1. 总结关键共识点。
-2. 总结关键分歧点。
-3. 陈述你推荐的方法及原因。`
+Synthesise the discussion. State your final position on the approach.
+1. Summarise the key points of agreement.
+2. Summarise the key points of disagreement.
+3. State your recommended approach and why.`
 
 				const promises = config.participants.map((participant) =>
 					this.runParticipantTask(participant, phase, "lead", convergePrompt, this.buildContextForParticipant(participant, phase)),
@@ -471,7 +471,7 @@ export class DiscussionManager {
 		this.messages.push({
 			id: crypto.randomUUID(),
 			participantId: "user",
-			participantName: "用户",
+			participantName: "User",
 			type: "user",
 			content: text,
 			phase: this.state.phase,
@@ -481,14 +481,14 @@ export class DiscussionManager {
 		await this.notifyStateUpdate()
 
 		// All participants respond in parallel
-		const chatPrompt = `## 聊天模式
+		const chatPrompt = `## Chat Mode
 
-用户发送了以下消息。从你的角色视角回复。
+A user has sent the following message. Respond from your role's perspective.
 
-用户消息:
+User message:
 ${text}
 
-自然地与用户和彼此互动。你可以使用工具来验证你的声明。`
+Engage naturally with the user and with each other. You may use tools to verify your claims.`
 
 		const promises = this.state.config.participants.map((participant) =>
 			this.runParticipantTask(participant, this.state.phase, "lead", chatPrompt, text),
@@ -520,23 +520,23 @@ ${text}
 			.map((m) => `[${m.participantName} (${m.type})]: ${m.content}`)
 			.join("\n\n---\n\n")
 
-		const proposalPrompt = `## 阶段:方案生成
+		const proposalPrompt = `## Phase: Proposal Generation
 
-基于整个讨论,生成一个具体的文件修改方案。
+Based on the entire discussion, generate a concrete file modification proposal.
 
-讨论记录:
+Discussion transcript:
 ${consensus}
 
-你的方案应包括:
-1. 已达成共识的方法摘要。
-2. 对于每个要修改的文件:文件路径、更改性质以及简短的代码片段或diff描述。
-3. 任何剩余的待办事项或风险。
+Your proposal should include:
+1. A summary of the agreed-upon approach.
+2. For each file to be modified: the file path, the nature of the change, and a brief code snippet or diff description.
+3. Any open items or risks that remain.
 
-以清晰、结构化的格式输出方案。`
+Output the proposal in a clear, structured format.`
 
 		const leadParticipant = this.state.config.participants[0]
 		if (!leadParticipant) {
-			this.addSystemMessage("没有可用的参与者来生成方案。")
+			this.addSystemMessage("No participants available to generate proposal.")
 			return ""
 		}
 
@@ -555,7 +555,7 @@ ${consensus}
 		}
 		this.state.status = "reviewing"
 		this.state.currentPhase = null
-		this.addSystemMessage("方案已生成。等待审查。")
+		this.addSystemMessage("Proposal generated. Awaiting review.")
 		await this.notifyStateUpdate()
 
 		return proposalText
@@ -577,7 +577,7 @@ ${consensus}
 		}
 
 		this.tasks.clear()
-		this.addSystemMessage("讨论已中止。")
+		this.addSystemMessage("Discussion aborted.")
 		await this.notifyStateUpdate()
 	}
 
@@ -925,15 +925,15 @@ ${consensus}
 		parts.push(phasePrompt)
 
 		// Discussion topic
-		parts.push(`## 讨论主题\n\n${this.state.config.topic}`)
+		parts.push(`## Discussion Topic\n\n${this.state.config.topic}`)
 
 		// Extra context (other participants' output, user message, etc.)
 		if (extraContext) {
-			parts.push(`## 上下文\n\n${extraContext}`)
+			parts.push(`## Context\n\n${extraContext}`)
 		}
 
 		// Instruction to complete and use attempt_completion
-		parts.push(`## 指令\n\n当你完成此阶段的回复后,使用 attempt_completion 工具展示你的输出。你的完成结果应仅包含你在此阶段的回复。`)
+		parts.push(`## Instructions\n\nWhen you have finished your response for this phase, use the attempt_completion tool to present your output. Your completion result should contain only your response for this phase.`)
 
 		return parts.join("\n\n====\n\n")
 	}
@@ -965,7 +965,7 @@ ${consensus}
 		}
 
 		return priorMessages
-			.map((m) => `### ${m.participantName} (${m.type}, 阶段: ${m.phase})\n\n${m.content}`)
+			.map((m) => `### ${m.participantName} (${m.type}, phase: ${m.phase})\n\n${m.content}`)
 			.join("\n\n---\n\n")
 	}
 
@@ -1014,7 +1014,7 @@ ${consensus}
 		const msg: DiscussionMessage = {
 			id: uuidv4(),
 			participantId: "system",
-			participantName: "系统",
+			participantName: "System",
 			type: "system",
 			content,
 			phase: this.state.phase,
@@ -1036,7 +1036,7 @@ ${consensus}
 	 */
 	async applyProposal(): Promise<void> {
 		if (!this.state.proposal) {
-			this.onError("没有可应用的方案")
+			this.onError("No proposal to apply")
 			return
 		}
 
@@ -1045,7 +1045,7 @@ ${consensus}
 
 		const workspaceFolders = vscode.workspace.workspaceFolders
 		if (!workspaceFolders) {
-			this.onError("没有打开的工作区文件夹")
+			this.onError("No workspace folder open")
 			return
 		}
 		const workspaceRoot = workspaceFolders[0].uri
@@ -1075,11 +1075,11 @@ ${consensus}
 			}
 
 			this.state.status = "done"
-			this.addSystemMessage("方案已应用到工作区。")
+			this.addSystemMessage("Proposal applied to workspace.")
 			this.notifyStateUpdate()
 		} catch (error) {
 			const errorMsg = error instanceof Error ? error.message : String(error)
-			this.onError(`应用方案失败:${errorMsg}`)
+			this.onError(`Failed to apply proposal: ${errorMsg}`)
 			this.state.status = "rejected"
 			this.notifyStateUpdate()
 		}
@@ -1091,7 +1091,7 @@ ${consensus}
 	 */
 	rejectProposal(): void {
 		this.state.status = "rejected"
-		this.addSystemMessage("方案已拒绝。")
+		this.addSystemMessage("Proposal rejected.")
 		this.notifyStateUpdate()
 	}
 
